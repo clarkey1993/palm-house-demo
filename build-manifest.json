@@ -1,0 +1,26 @@
+{
+  "channel": "playtest",
+  "version": "0.2.0",
+  "files": {
+    "build-config.js": "7c1b19fcc37640df0ce5a73ba723d0d8ce4d2e0bbbc1dd73d4456a7704a1064d",
+    "economy.js": "f753a9adc97e8e3fa6fb1543ffac21fd934c45bf9bbbab2bdb81877fe2124ce2",
+    "hotel.js": "0abd09ec63387dd1f29b35f77471ee3a8e3a05e13b6d191efc674d2922a4dad4",
+    "index.html": "5bad81c894c2ebaba19734e519e140865b6f1b7c9b66679a6ac5d9d8cac85f8e",
+    "journey.js": "5a13d9786fd557b0d52eb5e8bde83385f232b3e6c7b5ea541c503020e9d5e4d7",
+    "layout.js": "27c372e741f71b55765034b13cfed7bbad7bdcc837c0dcfbfc3f19434c6a6121",
+    "main.js": "34a918e2c941004b1541bdfffb64958345c5f892c42a173edc81f11dff73dc00",
+    "model.js": "994c9eacda77a1c82c346f044c004bc1134c17c593a0a53ed300ca5149c7af77",
+    "opening.js": "6010179a19cd4016fc94e484fff443d3507a52d04b71f58f7265d8b3556136d6",
+    "playtest.js": "040931b1791b270f4fbe74d1879ada2137ee18f2d2e8bff5824ae94a753b469d",
+    "privacy.html": "b8c1ceb0de47850344efc11dba483e8a0f24296447c2a95bb476e35359daec56",
+    "rooftop-view.js": "bcb67b090416420345c98002bc6a017f42621e8dec83a5af0a4f2bf141628cd1",
+    "rooftop.js": "a6f2ba696083d65a9c3ca458eea733ff1ec64ea9039769aacf1fa62b436afb6d",
+    "save-store.js": "4effc8ccedaa0c8d271fcc9d1a5b3bfa1d431360352504cfcf76bd2b562ea917",
+    "saves.js": "d46e4435b891aed20014818edd3dec491175961a83b26431dd815ba476cd6b20",
+    "style.css": "2838b269807dcaea71269091b0768cf4ed46c87eee93fd81db57574a0899685a",
+    "vendor/LICENSE": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
+    "vendor/three.core.js": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20",
+    "vendor/three.module.js": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a",
+    "view.js": "670ab8709f190df8e0a1c2e351f171c344d631434041820316acf51e83f6c686"
+  }
+}

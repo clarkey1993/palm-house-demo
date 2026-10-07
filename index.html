@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#174e50" />
+    <title>Palm House · Your little escape</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="app">
+      <canvas
+        id="game"
+        tabindex="0"
+        aria-label="Palm House hotel game. On touchscreens, drag anywhere to move. On desktop, drag your character to move or the map to pan. Pinch or scroll to zoom. Arrow keys also move."
+      ></canvas>
+      <div id="labels" aria-hidden="true"></div>
+      <header>
+        <div class="brand">
+          <div class="brand-mark">✦</div>
+          <div>
+            <span class="eyebrow">YOUR LITTLE ESCAPE</span>
+            <h1>Palm House<span>SEASIDE HOTEL</span></h1>
+          </div>
+        </div>
+        <div class="money">
+          <span class="cash-icon">$</span>
+          <div><small>YOUR CASH</small><b id="cash">0</b></div>
+        </div>
+      </header>
+      <div class="hotel-status">
+        <span class="stars" id="stars">★ ☆ ☆ ☆ ☆</span
+        ><span id="rank">A fresh start</span>
+        <div class="separator"></div>
+        <span id="rooms">1 / 4 rooms</span>
+      </div>
+      <div class="team-status">
+        <span id="housekeeping">Rooms looking lovely</span
+        ><small id="staff">Your hotel, your first team</small
+        ><small id="payroll">Wages $0/min</small>
+      </div>
+      <div class="toolbar">
+        <button id="sound" aria-label="Enable sound" title="Sound">
+          ♫<span class="slash"></span></button
+        ><button
+          id="zoom"
+          aria-label="Toggle hotel overview"
+          title="Hotel overview"
+        >
+          ⊞</button
+        ><button id="zoom-out" aria-label="Zoom out" title="Zoom out">−</button
+        ><button id="zoom-in" aria-label="Zoom in" title="Zoom in">+</button
+        ><button id="pause" aria-label="Pause game" title="Pause">Ⅱ</button>
+      </div>
+      <div class="floor-controls">
+        <span id="floor-name">01 · Garden lobby</span
+        ><button id="travel">↑ Floor 2 · $10k</button
+        ><button id="manage">Hotel book</button>
+      </div>
+      <div class="hospitality-status">
+        <b id="satisfaction">☺ 78% happy</b
+        ><span id="rush">Tour group in 180s</span><small id="profit"></small>
+      </div>
+      <div id="toast" role="status"></div>
+      <footer>
+        <button id="chapter-line" title="Open your journey"></button>
+        <div class="objective">
+          <span id="objective-icon">✦</span>
+          <div>
+            <small id="objective-label">MAKE YOURSELF AT HOME</small
+            ><strong id="hint">Welcome your first guest</strong
+            ><span id="detail">Stand in the mint circle behind reception.</span>
+          </div>
+          <div id="objective-progress"></div>
+        </div>
+        <div class="control-hint">
+          <span class="touch-hint">DRAG TO MOVE · PINCH TO ZOOM</span
+          ><span class="keyboard-hint"
+            ><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> to move · drag map
+            · scroll to zoom</span
+          ><span class="saved" id="save-status"
+            >Progress saves on this device</span
+          >
+        </div>
+      </footer>
+      <div id="overlay" hidden>
+        <div class="pause-card">
+          <span class="eyebrow">PALM HOUSE</span>
+          <h2>A moment<br />in the sun.</h2>
+          <p>Your hotel is paused. Take your time.</p>
+          <div class="pause-stats">
+            <div><b id="stat-guests">0</b><span>guests welcomed</span></div>
+            <div><b id="stat-earned">$0</b><span>earned from stays</span></div>
+          </div>
+          <button id="resume">Back to my hotel <span>→</span></button
+          ><small>Move · welcome · collect · grow</small>
+        </div>
+      </div>
+      <div id="management" hidden>
+        <section
+          class="hotel-book"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="book-title"
+        >
+          <div class="book-heading">
+            <span class="eyebrow">PALM HOUSE / HOTEL BOOK</span
+            ><button id="close-management" aria-label="Close hotel book">
+              ×
+            </button>
+          </div>
+          <h2 id="book-title">Your little escape.</h2>
+          <nav class="book-tabs" aria-label="Hotel book sections">
+            <button data-book="overview" aria-pressed="true">Hotel</button>
+            <button data-book="journey" aria-pressed="false">Journey</button>
+            <button data-book="team" aria-pressed="false">Team</button>
+            <button data-book="settings" aria-pressed="false">Settings</button>
+          </nav>
+          <div id="book-overview" class="book-panel">
+            <p id="finance-summary"></p>
+            <p id="wage-summary"></p>
+            <div class="review-note">
+              <strong>How your guests feel</strong>
+              <p id="review-summary"></p>
+              <small
+                >A brief smile marks great service. VIPs need premium suites and
+                have less patience. The upstairs lounge gives guests more
+                patience.</small
+              >
+            </div>
+            <section class="wing-plans">
+              <span class="eyebrow">GROW YOUR LOBBY INCOME</span>
+              <h3>More to earn before going upstairs</h3>
+              <p>
+                Garden Wing: $1,800 for two furnished rooms. Then add two
+                north-wing bedrooms and a separate restaurant terrace.
+              </p>
+              <p>
+                Bar menu, bakery and room minibars each have three upgrades:
+                $750 / $1,400 / $2,200. Buy them on their gold floor pads.
+              </p>
+              <small
+                >Bar menu: beside the bar, up to $65 per drink.<br />Bakery:
+                north corridor, up to $60 per breakfast.<br />Minibars: inside
+                the southwest room, up to $45 per downstairs checkout. Collect
+                room earnings yourself or use cash runners. These upgrades add
+                no wages.</small
+              >
+            </section>
+
+            <div class="next-chapter">
+              <span class="eyebrow">ABOVE IT ALL</span>
+              <h3>The Sky Club</h3>
+              <p>
+                Open two upstairs rooms to unlock the $6,500 rooftop project
+                beside the lift on Floor 2. Your pool is included.
+              </p>
+              <small
+                >Add cabanas, a sunset juice bar and a spa. Guests visit after
+                their stay. Collect their cash by the pool, or hire hosts to
+                collect it for you.</small
+              >
+            </div>
+          </div>
+          <div id="book-journey" class="book-panel" hidden>
+            <p class="book-intro">
+              Small beginnings. A beautiful escape. Complete each chapter in
+              your own time and claim a little help along the way.
+            </p>
+            <div id="journey-cards"></div>
+          </div>
+          <div id="book-team" class="book-panel" hidden>
+            <p class="booking-note">
+              Tap a room below to pause or reopen bookings. Current guests
+              finish their stay; cleaning continues. Figures cover the last 60
+              active seconds. Waiting time is measured at check-in.
+            </p>
+            <div id="team-rows"></div>
+            <p id="staff-feedback" role="status"></p>
+          </div>
+          <div id="book-settings" class="book-panel" hidden>
+            <h3>At your own pace</h3>
+            <label class="setting-row"
+              ><span
+                ><strong>Easygoing guests</strong
+                ><small
+                  >More patience and gentler satisfaction scores. Keep the same
+                  earnings.</small
+                ></span
+              ><input type="checkbox" id="easygoing" checked
+            /></label>
+            <h3>Your hotel, safely kept</h3>
+            <p>
+              Progress saves on this browser. Download a backup before changing
+              devices or clearing browser data.
+            </p>
+            <div class="save-actions">
+              <button id="export-save">Download backup</button
+              ><button id="import-save">Restore a backup</button>
+            </div>
+            <input
+              type="file"
+              id="save-file"
+              accept=".json,application/json"
+              hidden
+            />
+            <p id="backup-feedback" role="status"></p>
+            <button id="confirm-restore" hidden>Restore this hotel</button>
+            <section id="playtest-settings" hidden>
+              <h3>Help shape Palm House</h3>
+              <label class="setting-row"
+                ><span
+                  ><strong>Keep playtest notes on this device</strong
+                  ><small
+                    >Optional milestones, game purchases, session dates and
+                    errors. Nothing is sent automatically. Turning off deletes
+                    the local log.</small
+                  ></span
+                ><input type="checkbox" id="playtest-consent"
+              /></label>
+              <button id="export-playtest">Download playtest notes</button>
+              <p id="playtest-feedback" role="status"></p>
+            </section>
+            <p id="build-label"></p>
+            <p>
+              <a href="privacy.html" target="_blank" rel="noopener"
+                >Demo privacy &amp; help</a
+              >
+            </p>
+            <h3>A few little pointers</h3>
+            <p>
+              Drag anywhere on touchscreens to move. Pinch to zoom. Walk into
+              the lift to travel. Stand on glowing squares to build; prices
+              appear nearby. Your hotel pauses while this book is open.
+            </p>
+          </div>
+        </section>
+      </div>
+      <div id="lift-dialog" hidden>
+        <section
+          class="lift-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="lift-title"
+        >
+          <span class="eyebrow">PALM HOUSE / ELEVATOR</span>
+          <h2 id="lift-title">Where to?</h2>
+          <div id="lift-options"></div>
+          <button id="close-lift">Stay on this floor</button>
+        </section>
+      </div>
+      <div id="demo-dialog" class="demo-dialog" hidden>
+        <section
+          class="demo-card"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="demo-title"
+        >
+          <span class="eyebrow" id="demo-eyebrow"
+            >PALM HOUSE / THE OPENING CHAPTER</span
+          >
+          <div class="demo-art" aria-hidden="true">
+            <span>☀</span><i></i><b>✦</b>
+          </div>
+          <h2 id="demo-title">A little hotel.<br />A new beginning.</h2>
+          <p id="demo-description"></p>
+          <div id="demo-milestones"></div>
+          <label id="welcome-consent-row" class="setting-row" hidden
+            ><span
+              ><strong>Help us learn what feels good</strong
+              ><small
+                >Optional local playtest notes. You choose whether to share
+                them. No automatic uploads.</small
+              ></span
+            ><input type="checkbox" id="welcome-consent"
+          /></label>
+          <button id="demo-continue" class="demo-primary">
+            Make yourself at home →
+          </button>
+          <button id="demo-feedback" hidden>Review playtest notes</button>
+          <small id="demo-footnote"
+            >No ads. No timers while you're away. Take your time.</small
+          >
+        </section>
+      </div>
+      <div id="loading">
+        <div class="brand-mark">✦</div>
+        <h2>Welcome to Palm House</h2>
+        <p>A little sunshine. A big beginning.</p>
+      </div>
+    </main>
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
