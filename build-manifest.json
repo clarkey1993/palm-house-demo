@@ -1,14 +1,16 @@
 {
   "channel": "playtest",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "files": {
-    "build-config.js": "e2b24e49b72dfad96640d31ba55168a92e52ba3aa74be38e6a342c1050c1ef47",
+    "ambience.js": "c7b200291a59b3563cb40ad9d9276108c2a7bc0ff78f489e11662a9af0c255a0",
+    "build-config.js": "2f8f55ed18ebbe430e54ed848b7df5c65d9058ccb9c726f1d4436b6288121c8d",
+    "decor.js": "617e976a6b21e0e49aff8b03618a3b332040d0d508dd043c7f638787cf4d86a9",
     "economy.js": "f753a9adc97e8e3fa6fb1543ffac21fd934c45bf9bbbab2bdb81877fe2124ce2",
-    "hotel.js": "0abd09ec63387dd1f29b35f77471ee3a8e3a05e13b6d191efc674d2922a4dad4",
-    "index.html": "ad2a34197f64afe5e6d63d72183a8ead4e45781d0d1c648f561e049ec8b23ce9",
+    "hotel.js": "fc5cb60c65ce561aa27f0fbf317ddb9e96f81e771736e7333861ad65bbae396b",
+    "index.html": "1253acee5db30d713f80c25a5f5da1a16c332c7b55fc88cbfacf5b7064c86cca",
     "journey.js": "5a13d9786fd557b0d52eb5e8bde83385f232b3e6c7b5ea541c503020e9d5e4d7",
     "layout.js": "27c372e741f71b55765034b13cfed7bbad7bdcc837c0dcfbfc3f19434c6a6121",
-    "main.js": "d7985af8ff37b96fbcac006f367bf4d19b614658c32411531c3c9e0e13565796",
+    "main.js": "dbf6f87e6abcf8317ed72dc3a7525547372b882fd9926468748f12a4a649dac1",
     "model.js": "78bf36a3cf4daf83af222cd67b76b997c3189fb481aa82d7769bb575878bed94",
     "onboarding.js": "a3e2c2007c3f775bd2cf7ffb1f340c0af7af0af42857ab940e82dd69f3910fcf",
     "opening.js": "17af8fca97d34fbf7071d20528c478fe7331c1d4490372c5abba0889a0022429",
@@ -18,10 +20,10 @@
     "rooftop.js": "be803e9f7f09c4f2e7832bb297f223e9c181fe9e9f93a4f5d9d59351b3e17971",
     "save-store.js": "4effc8ccedaa0c8d271fcc9d1a5b3bfa1d431360352504cfcf76bd2b562ea917",
     "saves.js": "d46e4435b891aed20014818edd3dec491175961a83b26431dd815ba476cd6b20",
-    "style.css": "2838b269807dcaea71269091b0768cf4ed46c87eee93fd81db57574a0899685a",
+    "style.css": "3dc31c081048a9b8728709456e7c23033a4ce4134be4416c3c2e2616e477bd0d",
     "vendor/LICENSE": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
     "vendor/three.core.js": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20",
     "vendor/three.module.js": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a",
-    "view.js": "f84282f25fb799b12d9ff00fc11abd0348314de13d0ec60c12e9c743c8ecb8d6"
+    "view.js": "7f96127ffc3ff0ba235a905605f8af0b1de9f46b55f0413930042f2a843eca92"
   }
 }

@@ -1,3 +1,4 @@
+import { selectDecor } from "./decor.js";
 import { ECONOMY } from "./economy.js";
 import { createRooftop, updateRooftop } from "./rooftop.js";
 import {
@@ -38,6 +39,7 @@ export function createHotel(saved) {
   ground.state.economy = true;
   if (!saved) ground.state.cash = ECONOMY.startingCash;
   const h = {
+    decor: "palm",
     openingCelebrated: !!saved?.openingCelebrated,
     liftReady: true,
     liftChoice: false,
@@ -95,6 +97,7 @@ export function createHotel(saved) {
     h.floors.push(createRooftop(saved?.rooftop));
     h.floors[2].state.cash = ground.state.cash;
   }
+  selectDecor(h, saved?.decor);
   return h;
 }
 function makeUpper(saved) {
@@ -112,6 +115,7 @@ export function serializeHotel(h) {
     ...serialize(h.floors[0]),
     upper: h.floors[1] ? serialize(h.floors[1]) : undefined,
     rooftop: h.floors[2] ? serialize(h.floors[2]) : undefined,
+    decor: h.decor,
     openingCelebrated: h.openingCelebrated,
     claimed: [...h.claimed],
     easygoing: h.easygoing,

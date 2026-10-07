@@ -1060,7 +1060,7 @@ kbd {
 /* The hotel book is a calm, navigable home for detailed controls. */
 .book-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 5px;
   padding: 5px;
   border-radius: 14px;
@@ -1478,4 +1478,49 @@ input:focus-visible {
 /* Layout utilities must never override the native hidden attribute. */
 [hidden] {
   display: none !important;
+}
+
+/* Earned cosmetics stay in the book, leaving the play area clear. */
+#decor-cards {
+  display: grid;
+  gap: 14px;
+}
+.decor-card {
+  padding: 18px;
+  border: 1px solid #bfcdb3;
+  border-radius: 18px;
+  background: #fff9ea;
+}
+.decor-card h3 {
+  margin: 12px 0 6px;
+}
+.decor-card p {
+  margin: 0 0 12px;
+}
+.decor-card small {
+  display: block;
+  margin-bottom: 12px;
+}
+.decor-card button {
+  width: 100%;
+  min-height: 44px;
+}
+.decor-card button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+.decor-swatches {
+  display: flex;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 9px;
+}
+.decor-swatches span {
+  flex: 1;
+}
+.book-tabs {
+  overflow-x: auto;
+}
+.book-tabs button {
+  flex-shrink: 0;
 }

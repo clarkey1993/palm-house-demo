@@ -118,6 +118,7 @@
             <button data-book="overview" aria-pressed="true">Hotel</button>
             <button data-book="journey" aria-pressed="false">Journey</button>
             <button data-book="team" aria-pressed="false">Team</button>
+            <button data-book="decor" aria-pressed="false">Décor</button>
             <button data-book="settings" aria-pressed="false">Settings</button>
           </nav>
           <div id="book-overview" class="book-panel">
@@ -182,7 +183,25 @@
             <div id="team-rows"></div>
             <p id="staff-feedback" role="status"></p>
           </div>
+          <div id="book-decor" class="book-panel" hidden>
+            <p class="book-intro">
+              Make it your seaside escape. Welcome guests and care for rooms to
+              earn new colours. No cash needed; your upgrades stay exactly as
+              they are.
+            </p>
+            <div id="decor-cards"></div>
+          </div>
           <div id="book-settings" class="book-panel" hidden>
+            <h3>Sounds of the seaside</h3>
+            <label class="setting-row"
+              ><span
+                ><strong>Gentle sea ambience</strong
+                ><small
+                  >Soft waves while you play. Pauses with your hotel. The sound
+                  button mutes all audio.</small
+                ></span
+              ><input type="checkbox" id="ambience"
+            /></label>
             <h3>At your own pace</h3>
             <label class="setting-row"
               ><span

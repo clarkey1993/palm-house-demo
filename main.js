@@ -1,3 +1,5 @@
+import { createSeaAmbience } from "./ambience.js";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js";
 import { openingTask } from "./onboarding.js";
 import { BUILD } from "./build-config.js";
 import { BrowserSaveStore } from "./save-store.js";
@@ -141,6 +143,11 @@ if (preview && document.body.dataset.roofPreview === "true") {
 if (preview && document.body.dataset.freshPreview !== "true")
   Object.assign(hotel.floors[0].player, LIFT);
 let game = hotel.floors[hotel.active];
+const seenDecor = new Set(
+  DECOR.filter((style) => decorAvailable(hotel, style.id)).map(
+    (style) => style.id,
+  ),
+);
 let view,
   paused = false,
   keys = {},
@@ -150,6 +157,9 @@ let view,
   toastTime = 0,
   muted = true,
   audio,
+  seaAudio,
+  audioActive = null,
+  ambienceEnabled = false,
   lastSound = 0,
   lastCash = -1;
 let soundSaved;
@@ -157,6 +167,33 @@ try {
   soundSaved = localStorage.getItem("palm-house-sound");
 } catch {}
 muted = soundSaved !== "on";
+try {
+  ambienceEnabled =
+    localStorage.getItem((BUILD.namespace || "palm-house") + ":ambience") ===
+    "on";
+} catch {}
+function unlockAudio() {
+  if (muted) return;
+  try {
+    audio ??= new (window.AudioContext || window.webkitAudioContext)();
+    if (!seaAudio) seaAudio = createSeaAmbience(audio);
+    if (audio.state === "suspended") audioActive = null;
+    syncAudio();
+  } catch {}
+}
+function syncAudio() {
+  if (!audio) return;
+  const active = !muted && !paused && !saveConflict && !document.hidden;
+  seaAudio?.setEnabled(active && ambienceEnabled);
+  if (active === audioActive) return;
+  audioActive = active;
+  const operation = active ? audio.resume() : audio.suspend();
+  operation?.catch(() => {}); // Retry after the next deliberate interaction.
+}
+// Audio starts only after a deliberate interaction; never from an autoplay timer.
+window.addEventListener("pointerdown", unlockAudio);
+window.addEventListener("keydown", unlockAudio);
+
 function save() {
   if (preview || saveConflict) return;
   try {
@@ -175,6 +212,7 @@ function showSaveConflict() {
   if (saveConflict) return;
   saveConflict = true;
   paused = true;
+  syncAudio();
   keys = {};
   release();
   const panel = document.createElement("div");
@@ -320,6 +358,7 @@ $("#demo-continue").onclick = () => {
   welcomeVisible = false;
   $("#demo-dialog").hidden = true;
   paused = false;
+  syncAudio();
   canvas.focus();
   save();
 };
@@ -356,8 +395,7 @@ function notify(t) {
 function sound(kind) {
   if (muted) return;
   try {
-    audio ??= new (window.AudioContext || window.webkitAudioContext)();
-    if (audio.state === "suspended") audio.resume();
+    if (!audio || !audioActive) return;
     if (audio.currentTime - lastSound < 0.045) return;
     lastSound = audio.currentTime;
     const notes =
@@ -396,10 +434,30 @@ $("#sound").onclick = () => {
     localStorage.setItem("palm-house-sound", muted ? "off" : "on");
   } catch {}
   soundButton();
+  unlockAudio();
+  syncAudio();
   sound("checkin");
+};
+$("#ambience").checked = ambienceEnabled;
+$("#ambience").onchange = () => {
+  ambienceEnabled = $("#ambience").checked;
+  if (ambienceEnabled) {
+    muted = false;
+    soundButton();
+  }
+  try {
+    localStorage.setItem(
+      (BUILD.namespace || "palm-house") + ":ambience",
+      ambienceEnabled ? "on" : "off",
+    );
+    localStorage.setItem("palm-house-sound", muted ? "off" : "on");
+  } catch {}
+  unlockAudio();
+  syncAudio();
 };
 function pause(v) {
   paused = v;
+  syncAudio();
   keys = {};
   release();
   $("#overlay").hidden = !v;
@@ -463,6 +521,7 @@ $("#travel").onclick = () => {
 function management() {
   $("#management").hidden = false;
   paused = true;
+  syncAudio();
   keys = {};
   release();
   $("#finance-summary").textContent =
@@ -637,6 +696,7 @@ function management() {
     }
   });
   renderJourney();
+  renderDecor();
   $("#easygoing").checked = hotel.easygoing;
   renderPlaytestSummary();
 }
@@ -644,6 +704,7 @@ $("#manage").onclick = management;
 $("#close-management").onclick = () => {
   $("#management").hidden = true;
   paused = false;
+  syncAudio();
   canvas.focus();
   hud();
 };
@@ -666,6 +727,53 @@ $("#chapter-line").onclick = () => {
   management();
   bookSection("journey");
 };
+function renderDecor() {
+  const list = $("#decor-cards");
+  list.replaceChildren();
+  const progress = decorProgress(hotel);
+  for (const style of DECOR) {
+    const card = document.createElement("article");
+    card.className = "decor-card";
+    const swatches = document.createElement("div");
+    swatches.className = "decor-swatches";
+    swatches.setAttribute("aria-hidden", "true");
+    style.palette.forEach((color) => {
+      const swatch = document.createElement("span");
+      swatch.style.backgroundColor = color;
+      swatches.append(swatch);
+    });
+    const title = document.createElement("h3");
+    title.textContent = style.name;
+    const description = document.createElement("p");
+    description.textContent = style.description;
+    const button = document.createElement("button");
+    const available = decorAvailable(hotel, style.id);
+    button.disabled = !available || hotel.decor === style.id;
+    button.textContent =
+      hotel.decor === style.id
+        ? "Selected"
+        : available
+          ? "Use " + style.name
+          : "Keep playing to earn";
+    const note = document.createElement("small");
+    note.textContent = available
+      ? "Earned · yours to switch any time"
+      : `${Math.min(progress.guests, style.guests)}/${style.guests} guests welcomed` +
+        (style.cleans
+          ? ` · ${Math.min(progress.cleans, style.cleans)}/${style.cleans} rooms cleaned`
+          : "");
+    button.onclick = () => {
+      if (!selectDecor(hotel, style.id)) return;
+      view.setDecor(hotel.decor);
+      view.render(0);
+      save();
+      renderDecor();
+      notify(style.name + " · a fresh look for your hotel.");
+    };
+    card.append(swatches, title, description, note, button);
+    list.append(card);
+  }
+}
 function renderJourney() {
   const list = $("#journey-cards");
   list.replaceChildren();
@@ -806,6 +914,7 @@ $("#confirm-restore").onclick = () => {
 function openLift() {
   if (!$("#lift-dialog").hidden) return;
   paused = true;
+  syncAudio();
   keys = {};
   release();
   const options = $("#lift-options");
@@ -834,10 +943,19 @@ function closeLift() {
   hotel.liftReady = false;
   $("#lift-dialog").hidden = true;
   paused = false;
+  syncAudio();
   canvas.focus();
 }
 $("#close-lift").onclick = closeLift;
 function hud() {
+  for (const style of DECOR) {
+    if (decorAvailable(hotel, style.id) && !seenDecor.has(style.id)) {
+      seenDecor.add(style.id);
+      notify(
+        style.name + " earned · find your new colours in Hotel book → Décor.",
+      );
+    }
+  }
   const s = game.state;
   if (s.cash !== lastCash) {
     $("#cash").textContent = s.cash.toLocaleString();
@@ -1292,6 +1410,7 @@ window.addEventListener("blur", () => {
   save();
 });
 document.addEventListener("visibilitychange", () => {
+  syncAudio();
   keys = {};
   release();
   save();
@@ -1305,6 +1424,7 @@ window.addEventListener("resize", () => view?.resize());
 function frame(t) {
   const dt = Math.min((t - last) / 1000, 0.04);
   last = t;
+  syncAudio();
   if (!paused && !saveConflict && !document.hidden) {
     const input =
       drag?.mode === "move"
@@ -1422,6 +1542,7 @@ function frame(t) {
     toastTime -= dt;
     if (toastTime <= 0) $("#toast").classList.remove("show");
     hud();
+    view.setDecor(hotel.decor);
     view.render(dt);
   }
   requestAnimationFrame(frame);
@@ -1432,6 +1553,7 @@ try {
       ? new RooftopView(canvas, game)
       : new HotelView(canvas, game);
   hud();
+  view.setDecor(hotel.decor);
   view.render(0.016);
   $("#loading").hidden = true;
   if (recoveredSave) notify("Your backup restored your hotel safely.");

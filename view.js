@@ -1,3 +1,4 @@
+import { DECOR } from "./decor.js";
 import * as T from "./vendor/three.module.js";
 import {
   ROOMS,
@@ -210,7 +211,33 @@ export class HotelView {
     this.rebuild();
     this.resize();
   }
+  setDecor(id) {
+    if (this.decor === id) return;
+    this.decor = id;
+    const palette = (DECOR.find((d) => d.id === id) || DECOR[0]).colors;
+    for (const material of this.materials.values()) {
+      const spec = material.userData.decor;
+      if (spec) material.color.setHex(palette[spec.role] ?? spec.original);
+    }
+  }
+  fabric(role, original) {
+    return { role, original };
+  }
   mat(color, roughness = 0.85) {
+    if (typeof color === "object") {
+      const key = `decor:${color.role}:${color.original}:${roughness}`;
+      if (!this.materials.has(key)) {
+        const palette = (DECOR.find((d) => d.id === this.decor) || DECOR[0])
+          .colors;
+        const material = new T.MeshStandardMaterial({
+          color: palette[color.role] ?? color.original,
+          roughness,
+        });
+        material.userData.decor = color;
+        this.materials.set(key, material);
+      }
+      return this.materials.get(key);
+    }
     const key = color + ":" + roughness;
     if (!this.materials.has(key))
       this.materials.set(key, new T.MeshStandardMaterial({ color, roughness }));
@@ -423,7 +450,7 @@ export class HotelView {
       5.5,
       0.035,
       17.2,
-      this.game.state.floor ? 0x87749a : 0x4c988e,
+      this.fabric("border", this.game.state.floor ? 0x87749a : 0x4c988e),
       0,
       0.16,
       -3.1,
@@ -434,7 +461,7 @@ export class HotelView {
       5.1,
       0.015,
       16.7,
-      this.game.state.floor ? 0xb9a8c6 : 0x72b4a0,
+      this.fabric("carpet", this.game.state.floor ? 0xb9a8c6 : 0x72b4a0),
       0,
       0.19,
       -3.1,
@@ -446,7 +473,7 @@ export class HotelView {
         4.9,
         0.014,
         0.025,
-        this.game.state.floor ? 0xd4c4df : 0x8bc5ad,
+        this.fabric("stripe", this.game.state.floor ? 0xd4c4df : 0x8bc5ad),
         0,
         0.202,
         z,
@@ -663,8 +690,28 @@ export class HotelView {
       this.box(24.5, 0.12, 7.5, 0xf3e5c6, 0, 0.08, -16.75, ext);
       for (let z = -20; z < -13; z += 1.05)
         this.box(24, 0.012, 0.025, 0xe5d4b5, 0, 0.15, z, ext);
-      this.round(5.5, 0.035, 8.8, 0x4c988e, 0, 0.16, -16.1, ext, 0.1);
-      this.round(5.1, 0.02, 8.4, 0x72b4a0, 0, 0.19, -16.1, ext, 0.1);
+      this.round(
+        5.5,
+        0.035,
+        8.8,
+        this.fabric("border", 0x4c988e),
+        0,
+        0.16,
+        -16.1,
+        ext,
+        0.1,
+      );
+      this.round(
+        5.1,
+        0.02,
+        8.4,
+        this.fabric("carpet", 0x72b4a0),
+        0,
+        0.19,
+        -16.1,
+        ext,
+        0.1,
+      );
       this.sign(
         "GARDEN WING",
         4,
@@ -771,8 +818,28 @@ export class HotelView {
       this.box(24.5, 0.12, 10, 0xf3e5c6, 0, 0.08, -25.5, p);
       for (let z = -30; z < -20; z += 1.05)
         this.box(24, 0.012, 0.025, 0xe5d4b5, 0, 0.15, z, p);
-      this.round(5.5, 0.035, 11.3, 0x4c988e, 0, 0.16, -24.85, p, 0.1);
-      this.round(5.1, 0.02, 10.9, 0x72b4a0, 0, 0.19, -24.85, p, 0.1);
+      this.round(
+        5.5,
+        0.035,
+        11.3,
+        this.fabric("border", 0x4c988e),
+        0,
+        0.16,
+        -24.85,
+        p,
+        0.1,
+      );
+      this.round(
+        5.1,
+        0.02,
+        10.9,
+        this.fabric("carpet", 0x72b4a0),
+        0,
+        0.19,
+        -24.85,
+        p,
+        0.1,
+      );
       // A low divider separates the two locked north rooms, leaving the hall open.
       for (const x of [-7.65, 7.65]) {
         this.round(8.2, 0.6, 0.38, 0xd2ba8e, x, 0.5, -22.35, p, 0.12);
@@ -1097,7 +1164,16 @@ export class HotelView {
     this.box(7.35, 0.045, 6.9, lv ? 0xe7d5b4 : 0xd1c9b4, 0, 0.19, 0, g);
     for (let z = -3; z < 3.4; z += 0.65)
       this.box(7.3, 0.009, 0.017, lv ? 0xd5c09d : 0xc7bea8, 0, 0.22, z, g);
-    this.box(7.6, 1.65, 0.24, lv ? theme : 0xb8c5ae, 0, 0.97, -3.3, g);
+    this.box(
+      7.6,
+      1.65,
+      0.24,
+      lv ? this.fabric("wall", theme) : 0xb8c5ae,
+      0,
+      0.97,
+      -3.3,
+      g,
+    );
     this.box(7.65, 0.14, 0.32, colors.cream, 0, 1.85, -3.3, g);
     const edge = i % 2 === 0 ? 3.65 : -3.65;
     this.box(0.24, 0.9, 3.6, 0xf1e6cc, edge, 0.65, -1.5, g);
@@ -1175,7 +1251,7 @@ export class HotelView {
       3.34,
       0.17,
       2.2,
-      lv === 2 ? 0xe2bc6e : theme,
+      this.fabric("linen", lv === 2 ? 0xe2bc6e : theme),
       0,
       1.13,
       0.8,
@@ -1538,6 +1614,7 @@ export class HotelView {
     this.player.userData.arms.forEach(
       (a) => (a.rotation.x = carrying ? -1.1 : 0),
     );
+    if (g.cleanRoom >= 0) this.cleaningPose(this.player);
     this.player.userData.mop.visible = g.cleanRoom >= 0;
     this.player.userData.mop.rotation.y = Math.sin(g.time * 10) * 0.4;
     this.receptionActors?.forEach((actor, i) => {
@@ -1557,6 +1634,8 @@ export class HotelView {
       a.position.set(worker.x, 0, worker.z);
       a.rotation.y = worker.angle;
       this.animateActor(a, worker, dt);
+      if (worker.phase === "clean" && onDuty(s)) this.cleaningPose(a);
+      else a.userData.arms.forEach((arm) => (arm.rotation.x = 0));
       a.userData.mop.visible = true;
       a.userData.mop.rotation.y =
         worker.phase === "clean" && onDuty(s)
@@ -1609,6 +1688,11 @@ export class HotelView {
       actor.rotation.y = Math.atan2(dx, dz);
       this.animateActor(actor, { moving: Math.hypot(dx, dz) > 0.1 }, dt);
       actor.userData.cup.visible = !!guest;
+      actor.userData.arms.forEach((arm, index) => {
+        arm.rotation.x = guest
+          ? -0.8 + (index ? 0 : Math.sin(g.time * 4) * 0.08)
+          : 0;
+      });
     }
     const ids = new Set();
     for (const guest of g.guests) {
@@ -1961,6 +2045,13 @@ export class HotelView {
     this.renderer.dispose();
     this.playerOverlay.dispose();
     document.querySelector("#labels").replaceChildren();
+  }
+  cleaningPose(actor) {
+    const scrub = Math.sin(this.game.time * 7);
+    actor.userData.arms.forEach(
+      (arm, i) => (arm.rotation.x = -0.55 + scrub * (i ? 0.1 : 0.22)),
+    );
+    actor.position.y = 0.012 * (1 + scrub);
   }
   animateActor(a, v) {
     const swing = v.moving ? Math.sin(this.game.time * 14) * 0.35 : 0;
