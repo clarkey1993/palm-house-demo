@@ -157,7 +157,8 @@ export function updateRooftop(g, dt, input = { x: 0, z: 0 }) {
       distance(a, p) < 1.04,
   );
   g.active = pad?.i ?? -1;
-  g.payment = pad && s.cash > 0 ? g.payment + dt : 0;
+  const stopped = Math.hypot(input.x, input.z) < 0.05;
+  g.payment = pad && stopped && s.cash > 0 ? g.payment + dt : 0;
   if (pad && s.cash > 0 && g.payment >= 0.055) {
     const cost = price(s, pad.i),
       amount = Math.min(

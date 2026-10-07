@@ -1742,7 +1742,9 @@ export class HotelView {
       const visible = unlocked(s, pad.i) && !complete(s, pad.i);
       group.visible = visible;
       glow.material.opacity =
-        0.15 + Math.sin(g.time * 1.8 + pad.i * 0.5) * 0.045;
+        s.openingDemo && g.openingGuide?.pad === pad.i
+          ? 0.3 + Math.sin(g.time * 2) * 0.07
+          : 0.15 + Math.sin(g.time * 1.8 + pad.i * 0.5) * 0.045;
       const point = this.project(pad.x, 0.35, pad.z);
       if (pad.i === 7 || pad.i === 9) point.y -= 24;
       if (pad.i === 10) {
@@ -1894,6 +1896,10 @@ export class HotelView {
         destination = next;
         guideText = label(s, next.i);
       }
+    }
+    if (s.openingDemo && g.openingGuide) {
+      destination = g.openingGuide.destination;
+      guideText = g.openingGuide.guide;
     }
     const pt = this.project(destination.x, 0.3, destination.z),
       far = distance(g.player, destination) > 2.5,

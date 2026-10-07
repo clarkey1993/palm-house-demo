@@ -51,6 +51,32 @@ export const openingComplete = (h) =>
   OPENING_STEPS.every((s) => s.value(h) >= s.goal);
 export const nextOpeningStep = (h) =>
   OPENING_STEPS.find((s) => s.value(h) < s.goal);
+
+export const OPENING_HELP = [
+  {
+    id: "opening-first-welcome",
+    title: "Your first guest · a little head start",
+    reward: 100,
+    ready: (s) => s.welcomed > 0,
+  },
+  {
+    id: "opening-first-help",
+    title: "Your first cleaner · help for the next hire",
+    reward: 150,
+    ready: (s) => s.cleaner,
+  },
+];
+export function grantOpeningHelp(h) {
+  if (!h.floors[0].state.openingDemo) return [];
+  const earned = OPENING_HELP.filter(
+    (r) => !h.claimed.includes(r.id) && r.ready(h.floors[0].state),
+  );
+  for (const r of earned) {
+    h.claimed.push(r.id);
+    for (const g of h.floors) g.state.cash += r.reward;
+  }
+  return earned;
+}
 export function demoPadAllowed(s, i) {
   if (s.floor) return false;
   // Introduce management gradually, retaining upgrades to all four rooms.

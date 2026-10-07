@@ -1,9 +1,11 @@
+import { openingTask } from "./onboarding.js";
 import { BUILD } from "./build-config.js";
 import { BrowserSaveStore } from "./save-store.js";
 import { PlaytestLog } from "./playtest.js";
 import {
   OPENING_STEPS,
   openingComplete,
+  grantOpeningHelp,
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
@@ -61,6 +63,7 @@ const playtest = new PlaytestLog(
   storage,
   (BUILD.namespace || "prototype") + ":playtest",
   BUILD.version,
+  { available: BUILD.logging && document.body.dataset.hotelPreview !== "true" },
 );
 let lastSavedRaw = null,
   saveConflict = false;
@@ -221,10 +224,24 @@ $("#build-label").textContent =
   BUILD.channel === "prototype"
     ? "Original hotel · progress preserved"
     : "Opening demo · " + BUILD.channel + " · " + BUILD.version;
+function renderPlaytestSummary() {
+  const summary = playtest.summary();
+  $("#playtest-summary").textContent = playtest.enabled
+    ? summary.sessions +
+      " recorded visits · " +
+      Math.floor(summary.activeSeconds / 60) +
+      " active minutes · " +
+      summary.purchases +
+      " purchases. You choose whether to share these notes."
+    : "Recording is off. You can play the entire demo without sharing anything.";
+}
 $("#playtest-consent").onchange = () => {
   playtest.consent($("#playtest-consent").checked);
+  renderPlaytestSummary();
   $("#playtest-feedback").textContent = playtest.failed
-    ? "Browser storage is unavailable. You can still export this session's notes."
+    ? playtest.enabled
+      ? "Browser storage is unavailable. You can still export this session's notes."
+      : "Could not delete saved notes. Recording is off for this visit; your browser may retain the previous log."
     : playtest.enabled
       ? "Notes stay on this device until you choose to share them."
       : "Local playtest notes deleted.";
@@ -621,6 +638,7 @@ function management() {
   });
   renderJourney();
   $("#easygoing").checked = hotel.easygoing;
+  renderPlaytestSummary();
 }
 $("#manage").onclick = management;
 $("#close-management").onclick = () => {
@@ -773,6 +791,7 @@ $("#confirm-restore").onclick = () => {
     if (!preview)
       lastSavedRaw = saveStore.write(serializeHotel(restored), lastSavedRaw);
     hotel = restored;
+    playtest.record("restore", "backup");
     pendingRestore = null;
     arriveOnFloor();
     management();
@@ -1117,7 +1136,9 @@ function hud() {
       chapter.goal
     : "Your seaside escape";
   if (BUILD.openingDemo) {
-    const step = nextOpeningStep(hotel);
+    const step = nextOpeningStep(hotel),
+      task = openingTask(hotel);
+    game.openingGuide = task;
     $("#chapter-line").textContent = step
       ? step.title +
         " · " +
@@ -1125,16 +1146,10 @@ function hud() {
         "/" +
         step.goal
       : "Your opening chapter is complete · ✦";
-    if (
-      game.active < 0 &&
-      game.cleanRoom < 0 &&
-      !s.wagesDue &&
-      !game.piles.length &&
-      step
-    ) {
-      title = step.title;
-      detail = step.detail;
-      head = "MAKE THIS LITTLE HOTEL YOURS";
+    if (game.active < 0 && game.cleanRoom < 0 && !s.wagesDue) {
+      title = task.title;
+      detail = task.detail;
+      head = "YOUR NEXT LITTLE STEP";
     }
   }
   $("#hint").textContent = title;
@@ -1280,6 +1295,7 @@ document.addEventListener("visibilitychange", () => {
   keys = {};
   release();
   save();
+  playtest.flush();
 });
 window.addEventListener("pagehide", () => {
   save();
@@ -1305,6 +1321,11 @@ function frame(t) {
     updateHotel(hotel, dt, input);
     playtest.tick(dt);
     if (BUILD.openingDemo) {
+      for (const reward of grantOpeningHelp(hotel)) {
+        playtest.record("chapter", reward.id);
+        notify(reward.title + " · +$" + reward.reward);
+        sound("build");
+      }
       for (const c of CHAPTERS.filter((c) =>
         ["welcome", "rooms", "team", "flavour"].includes(c.id),
       )) {
