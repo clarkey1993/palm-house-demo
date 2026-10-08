@@ -267,7 +267,10 @@ $("#playtest-consent").checked = playtest.enabled;
 $("#build-label").textContent =
   BUILD.channel === "prototype"
     ? "Original hotel · progress preserved"
-    : "Opening demo · " + BUILD.channel + " · " + BUILD.version;
+    : (BUILD.openingDemo ? "Opening demo · " : "Full hotel playtest · ") +
+      BUILD.channel +
+      " · " +
+      BUILD.version;
 function renderPlaytestSummary() {
   const summary = playtest.summary();
   $("#playtest-summary").textContent = playtest.enabled
@@ -1577,8 +1580,8 @@ function frame(t) {
     if (Math.hypot(input.x, input.z) > 0.05) view.followPlayer();
     updateHotel(hotel, dt, input);
     playtest.tick(dt);
-    if (BUILD.openingDemo) {
-      for (const reward of grantOpeningHelp(hotel)) {
+    if (BUILD.openingDemo || BUILD.logging) {
+      for (const reward of grantOpeningHelp(hotel, true)) {
         playtest.record("chapter", reward.id);
         notify(reward.title + " · +$" + reward.reward);
         sound("build");
@@ -1600,7 +1603,11 @@ function frame(t) {
       if (openingComplete(hotel) && !hotel.openingCelebrated) {
         hotel.openingCelebrated = true;
         playtest.record("opening-complete", "opening", true);
-        showDemoEnd(true);
+        if (BUILD.openingDemo) showDemoEnd(true);
+        else
+          notify(
+            "Your opening chapter is complete · the full hotel awaits. Find your next chapter in the Hotel book.",
+          );
         save();
       }
     }
@@ -1695,7 +1702,7 @@ try {
   $("#loading").hidden = true;
   if (recoveredSave) notify("Your backup restored your hotel safely.");
   else if (!saved) notify("Welcome to Palm House · $500 to make it yours.");
-  if (BUILD.openingDemo && !saved) showWelcome();
+  if ((BUILD.openingDemo || BUILD.logging) && !saved) showWelcome();
   requestAnimationFrame(frame);
 } catch (error) {
   console.error(error);

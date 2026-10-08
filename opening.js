@@ -66,8 +66,8 @@ export const OPENING_HELP = [
     ready: (s) => s.cleaner,
   },
 ];
-export function grantOpeningHelp(h) {
-  if (!h.floors[0].state.openingDemo) return [];
+export function grantOpeningHelp(h, enabled = h.floors[0].state.openingDemo) {
+  if (!enabled) return [];
   const earned = OPENING_HELP.filter(
     (r) => !h.claimed.includes(r.id) && r.ready(h.floors[0].state),
   );

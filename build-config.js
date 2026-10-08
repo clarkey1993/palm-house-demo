@@ -1,8 +1,8 @@
 export const BUILD = Object.freeze({
   "channel": "playtest",
   "namespace": "palm-house-playtest",
-  "openingDemo": true,
+  "openingDemo": false,
   "logging": true,
-  "version": "0.3.1",
+  "version": "0.3.2",
   "purchaseMode": "unavailable"
 });
