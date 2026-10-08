@@ -1,3 +1,4 @@
+import { furniture } from "./furniture.js";
 import { stepMotion, motionPose } from "./animation.js";
 import { DECOR } from "./decor.js";
 import * as T from "./vendor/three.module.js";
@@ -213,6 +214,29 @@ export class HotelView {
     });
     this.rebuild();
     this.resize();
+  }
+  addFurniture(name, parent, x, y, z, level = 1, theme = 0x6d998b) {
+    const model = furniture(
+      name,
+      this.materials,
+      (material) => {
+        if (material.name === "Sea glass runner") {
+          const original = level === 2 ? 0xe2bc6e : theme;
+          material.userData.decor = { role: "linen", original };
+          const palette = (DECOR.find((d) => d.id === this.decor) || DECOR[0])
+            .colors;
+          material.color.setHex(palette.linen ?? original);
+        }
+        if (material.name === "Sea glass upholstery")
+          material.color.setHex(level === 2 ? 0xc19a55 : theme);
+      },
+      `${level}:${theme}`,
+    );
+    if (!model) return false;
+    model.position.set(x, y, z);
+    if (name === "boutique-bed") model.scale.set(1, 0.76, 0.9);
+    parent.add(model);
+    return model;
   }
   setDecor(id) {
     if (this.decor === id) return;
@@ -539,49 +563,51 @@ export class HotelView {
       this.round(4.6, 0.08, 3.6, 0xd9ab71, 0, 0.17, 10.3, this.scene, 0.6);
       for (let i = 0; i < 5; i++)
         this.cyl(0.055, 0.055, 0.65, 0xab8b55, -1.4, 0.48, 10 + i * 0.85);
-      this.round(4.4, 1.2, 1.3, 0x996d4d, 0, 0.8, 7.65, this.scene, 0.3);
-      for (let x = -1.9; x < 2; x += 0.2)
-        this.cyl(0.055, 0.055, 1.02, 0xc89969, x, 0.8, 8.29);
-      this.round(4.7, 0.22, 1.55, 0xfff0d6, 0, 1.49, 7.65, this.scene, 0.3);
-      this.sign(
-        "RECEPTION",
-        2.5,
-        0.46,
-        0,
-        0.95,
-        8.325,
-        this.scene,
-        "#315f51",
-        "#fff3d0",
-        54,
-      );
-      this.box(0.75, 0.55, 0.1, 0x315952, -0.85, 1.87, 7.53);
-      this.box(0.8, 0.07, 0.4, 0x476558, -0.85, 1.63, 7.65);
-      this.cyl(0.13, 0.17, 0.1, 0xe3b753, 1.45, 1.65, 7.7);
-      this.sphere(0.14, 0xffd98a, 1.45, 1.72, 7.7);
-      this.plant(-1.72, 7.6, 0.45).position.y = 1.6;
-      this.round(
-        0.57,
-        0.045,
-        0.38,
-        0xbb8c67,
-        0.45,
-        1.62,
-        7.8,
-        this.scene,
-        0.015,
-      );
-      this.round(
-        0.49,
-        0.015,
-        0.33,
-        0xfffae9,
-        0.45,
-        1.65,
-        7.8,
-        this.scene,
-        0.006,
-      );
+      if (!this.addFurniture("reception-desk", this.scene, 0, 0.13, 7.65)) {
+        this.round(4.4, 1.2, 1.3, 0x996d4d, 0, 0.8, 7.65, this.scene, 0.3);
+        for (let x = -1.9; x < 2; x += 0.2)
+          this.cyl(0.055, 0.055, 1.02, 0xc89969, x, 0.8, 8.29);
+        this.round(4.7, 0.22, 1.55, 0xfff0d6, 0, 1.49, 7.65, this.scene, 0.3);
+        this.sign(
+          "RECEPTION",
+          2.5,
+          0.46,
+          0,
+          0.95,
+          8.325,
+          this.scene,
+          "#315f51",
+          "#fff3d0",
+          54,
+        );
+        this.box(0.75, 0.55, 0.1, 0x315952, -0.85, 1.87, 7.53);
+        this.box(0.8, 0.07, 0.4, 0x476558, -0.85, 1.63, 7.65);
+        this.cyl(0.13, 0.17, 0.1, 0xe3b753, 1.45, 1.65, 7.7);
+        this.sphere(0.14, 0xffd98a, 1.45, 1.72, 7.7);
+        this.plant(-1.72, 7.6, 0.45).position.y = 1.6;
+        this.round(
+          0.57,
+          0.045,
+          0.38,
+          0xbb8c67,
+          0.45,
+          1.62,
+          7.8,
+          this.scene,
+          0.015,
+        );
+        this.round(
+          0.49,
+          0.015,
+          0.33,
+          0xfffae9,
+          0.45,
+          1.65,
+          7.8,
+          this.scene,
+          0.006,
+        );
+      }
     }
     this.round(4.5, 0.1, 3.2, 0xd9c3a0, 7.8, 0.19, 9.5, this.scene, 0.5);
     this.round(4.5, 0.55, 1.2, 0xc87561, 7.8, 0.6, 8.7, this.scene, 0.2);
@@ -1287,57 +1313,59 @@ export class HotelView {
       g,
       0.3,
     );
-    this.round(3.4, 0.52, 3.8, 0xad8055, 0, 0.56, 0.1, g, 0.2);
-    this.round(
-      3.5,
-      0.75,
-      0.27,
-      lv === 2 ? 0xc19a55 : theme,
-      0,
-      1.12,
-      -1.75,
-      g,
-      0.12,
-    );
-    for (let x = -1.45; x < 1.5; x += 0.48)
-      this.round(0.025, 0.57, 0.018, 0xb6c9af, x, 1.12, -1.598, g, 0.005);
-    this.round(3.3, 0.28, 3.65, 0xfff9e9, 0, 0.91, 0.13, g, 0.22);
-    this.round(3.34, 0.13, 3.15, 0xf4ead7, 0, 1.075, 0.38, g, 0.055);
-    this.round(
-      3.34,
-      0.12,
-      1.25,
-      this.fabric("linen", lv === 2 ? 0xe2bc6e : theme),
-      0,
-      1.19,
-      1.05,
-      g,
-      0.12,
-    );
-    for (const x of [-0.78, 0.78]) {
-      this.round(1.3, 0.25, 0.73, 0xfffcf0, x, 1.14, -1.12, g, 0.22);
+    if (!this.addFurniture("boutique-bed", g, 0, 0.27, 0.1, lv, theme)) {
+      this.round(3.4, 0.52, 3.8, 0xad8055, 0, 0.56, 0.1, g, 0.2);
       this.round(
-        0.55,
-        0.19,
-        0.55,
-        lv === 2 ? 0xe9ce94 : 0xb6d2be,
-        x,
-        1.3,
-        -0.71,
+        3.5,
+        0.75,
+        0.27,
+        lv === 2 ? 0xc19a55 : theme,
+        0,
+        1.12,
+        -1.75,
         g,
         0.12,
       );
+      for (let x = -1.45; x < 1.5; x += 0.48)
+        this.round(0.025, 0.57, 0.018, 0xb6c9af, x, 1.12, -1.598, g, 0.005);
+      this.round(3.3, 0.28, 3.65, 0xfff9e9, 0, 0.91, 0.13, g, 0.22);
+      this.round(3.34, 0.13, 3.15, 0xf4ead7, 0, 1.075, 0.38, g, 0.055);
+      this.round(
+        3.34,
+        0.12,
+        1.25,
+        this.fabric("linen", lv === 2 ? 0xe2bc6e : theme),
+        0,
+        1.19,
+        1.05,
+        g,
+        0.12,
+      );
+      for (const x of [-0.78, 0.78]) {
+        this.round(1.3, 0.25, 0.73, 0xfffcf0, x, 1.14, -1.12, g, 0.22);
+        this.round(
+          0.55,
+          0.19,
+          0.55,
+          lv === 2 ? 0xe9ce94 : 0xb6d2be,
+          x,
+          1.3,
+          -0.71,
+          g,
+          0.12,
+        );
+      }
+      this.box(
+        3.33,
+        0.04,
+        0.23,
+        lv === 2 ? 0xffe0a1 : 0xa6c6b7,
+        0,
+        1.23,
+        1.25,
+        g,
+      );
     }
-    this.box(
-      3.33,
-      0.04,
-      0.23,
-      lv === 2 ? 0xffe0a1 : 0xa6c6b7,
-      0,
-      1.23,
-      1.25,
-      g,
-    );
     for (const x of [-2.6, 2.6]) {
       this.round(0.95, 0.7, 0.82, 0xc09565, x, 0.63, -1.27, g, 0.1);
       this.cyl(0.09, 0.15, 0.38, 0xb59659, x, 1.11, -1.27, g);

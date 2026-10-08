@@ -1,3 +1,4 @@
+import { preloadFurniture } from "./furniture.js";
 import {
   RESTORATION,
   nextRestoration,
@@ -1692,6 +1693,7 @@ function frame(t) {
   requestAnimationFrame(frame);
 }
 try {
+  await preloadFurniture();
   view =
     hotel.active === 2
       ? new RooftopView(canvas, game)

@@ -1,20 +1,23 @@
 {
   "channel": "playtest",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "files": {
     "ambience.js": "c7b200291a59b3563cb40ad9d9276108c2a7bc0ff78f489e11662a9af0c255a0",
     "animation.js": "1db2906c0be9e05ab30604c8fa101c27f7817312f73a5ec3fd56a255ea23fc9c",
     "art-preview.css": "03079e35e0bf41f7e153331b5c145506734ce15b842ed69cee680f6e44b3f037",
     "art-preview.html": "973125e052852ac89c92f7c685f4a49ba4a3616737daa9f52883baff863ddba4",
     "art-preview.js": "da671af1c95d6cf732bc3503864c2b3c4ab2c2f0928955086cdf0299864e0846",
-    "build-config.js": "5546312fa5f735da76141767f799438ff1902b5b15314c648f031ae1bd6685cd",
+    "assets/models/boutique-bed.glb": "444588ba5e92ccde9723ac6e1a2818d4eb4a116ef3ce6002f3f3e12643c42c41",
+    "assets/models/reception-desk.glb": "bbceaf7cac90277d1b2088f49c3c91f26f6999df0ce959b5420406cfc3022af0",
+    "build-config.js": "90062500cb699c0129b7d708d58487679f31dd7ada96e53ad3c0f7f49cf3a54b",
     "decor.js": "617e976a6b21e0e49aff8b03618a3b332040d0d508dd043c7f638787cf4d86a9",
     "economy.js": "f753a9adc97e8e3fa6fb1543ffac21fd934c45bf9bbbab2bdb81877fe2124ce2",
+    "furniture.js": "b4e6fc9eee0476d9a010fa4b30894a046f86d6dde5994d832dbfde4c3f2f61b6",
     "hotel.js": "d6092e1b77effe19d6e1bbebfdb62602319e3c30896f620d38a0c83d4d3e4544",
     "index.html": "92cf10704cf2de5692cfb2a1df3abb8e46380bd4e216cf44c3a281d12ff80cd8",
     "journey.js": "5a13d9786fd557b0d52eb5e8bde83385f232b3e6c7b5ea541c503020e9d5e4d7",
     "layout.js": "27c372e741f71b55765034b13cfed7bbad7bdcc837c0dcfbfc3f19434c6a6121",
-    "main.js": "5fd6d4ec94d35cb95a30936156fc8e39644b0b6f338e1f78f14680de2ed78650",
+    "main.js": "6ae8a4f7e2005a49e8dbb10c85fd8e4ca1921dbd5ee1b30f3446f58b7303fdcf",
     "model.js": "09b46d9947153417318f7b8ef7c44169afb8fb0e68f8c699d05c658282a339ef",
     "onboarding.js": "a3e2c2007c3f775bd2cf7ffb1f340c0af7af0af42857ab940e82dd69f3910fcf",
     "opening.js": "4d3624c491fe85bdeb1ae41df5ca7240950d961fece0ec86b74a354ecb50fdfc",
@@ -26,9 +29,11 @@
     "save-store.js": "b5f589fa595047b18905fe7f7bccc85ecb8141386fa71f063d57d5b31db17374",
     "saves.js": "d46e4435b891aed20014818edd3dec491175961a83b26431dd815ba476cd6b20",
     "style.css": "f7201b7944efca2f4078e52b2ae4777deb2f6eee82f36b17178a5825d7d2de95",
+    "vendor/BufferGeometryUtils.js": "248b3e8420bd3de805ca01845c1b0cc62aa2766f3c56bdcead265e306f8e715c",
+    "vendor/GLTFLoader.js": "2904f2823e23d5bc1d64512bf4c0d777ac44d728d47c34a9e3d48ce8ef6b761d",
     "vendor/LICENSE": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
     "vendor/three.core.js": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20",
     "vendor/three.module.js": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a",
-    "view.js": "21e41c689f4f11b9c0afe1632c53f22618f4a110f6d2559aca601a9d1baff6a2"
+    "view.js": "d00e746d1511c26e9c5a282fed69571a10c56e31747a740f03f29626088a880b"
   }
 }
