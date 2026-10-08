@@ -312,6 +312,7 @@ function showWelcome() {
   $("#demo-footnote").textContent =
     "Your hotel pauses when you leave. Take your time.";
   welcomeVisible = true;
+  $("#welcome-consent").checked = playtest.enabled;
   paused = true;
   release();
   keys = {};
@@ -362,9 +363,9 @@ function showDemoEnd(done) {
   if (done) sound("build");
 }
 $("#demo-continue").onclick = () => {
-  if (welcomeVisible && BUILD.logging && $("#welcome-consent").checked) {
-    playtest.consent(true);
-    $("#playtest-consent").checked = true;
+  if (welcomeVisible && BUILD.logging) {
+    playtest.consent($("#welcome-consent").checked);
+    $("#playtest-consent").checked = playtest.enabled;
   }
   welcomeVisible = false;
   $("#demo-dialog").hidden = true;
