@@ -1,0 +1,154 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #b4d9d0;
+  color: #204f48;
+  font-family: system-ui, sans-serif;
+}
+canvas {
+  display: block;
+  width: 100vw;
+  height: 100dvh;
+  touch-action: none;
+}
+header {
+  position: absolute;
+  top: 28px;
+  left: 32px;
+  pointer-events: none;
+}
+header span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+h1 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: 46px;
+  margin: 10px 0;
+}
+header p {
+  font-size: 13px;
+  margin: 0;
+}
+nav {
+  position: absolute;
+  top: 28px;
+  right: 24px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  max-width: 440px;
+}
+button,
+a {
+  font: 600 12px system-ui;
+  color: #28574c;
+  background: #fff9eae8;
+  border: 1px solid #ffffff80;
+  border-radius: 20px;
+  padding: 12px 17px;
+  min-height: 44px;
+  cursor: pointer;
+  text-decoration: none;
+}
+button[aria-pressed="true"] {
+  background: #28574c;
+  color: #fff8e8;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #da9a48;
+  outline-offset: 3px;
+}
+aside {
+  position: absolute;
+  bottom: 22px;
+  left: 24px;
+  background: #fff9eced;
+  padding: 18px 22px;
+  border-radius: 22px;
+  max-width: 470px;
+  box-shadow: 0 8px 25px #204f4810;
+}
+aside strong {
+  font-family: Georgia, serif;
+  font-size: 21px;
+  font-weight: 500;
+}
+aside p {
+  font-size: 12px;
+  line-height: 1.5;
+  max-width: 370px;
+  margin: 8px 0 12px;
+}
+aside div {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+aside button,
+aside a {
+  background: #e4eadb;
+  border: 0;
+  padding: 9px 13px;
+}
+small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.7px;
+  margin-top: 12px;
+  opacity: 0.75;
+}
+#error {
+  position: absolute;
+  top: 40%;
+  left: 10%;
+  width: 80%;
+  padding: 20px;
+  background: #fff8e8;
+  border-radius: 20px;
+}
+@media (max-width: 700px) {
+  header {
+    top: 18px;
+    left: 20px;
+  }
+  h1 {
+    font-size: 32px;
+    margin: 7px 0;
+  }
+  header p {
+    display: none;
+  }
+  nav {
+    top: 105px;
+    left: 16px;
+    right: 16px;
+    max-width: none;
+    gap: 4px;
+  }
+  nav button {
+    flex: 1;
+    padding: 9px 7px;
+    font-size: 11px;
+  }
+  aside {
+    bottom: 14px;
+    left: 14px;
+    right: 14px;
+    padding: 14px 16px;
+  }
+  aside strong {
+    font-size: 18px;
+  }
+  aside p {
+    margin: 5px 0 8px;
+  }
+  small {
+    margin-top: 8px;
+  }
+}

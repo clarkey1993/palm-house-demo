@@ -4,6 +4,9 @@
   "files": {
     "ambience.js": "c7b200291a59b3563cb40ad9d9276108c2a7bc0ff78f489e11662a9af0c255a0",
     "animation.js": "1db2906c0be9e05ab30604c8fa101c27f7817312f73a5ec3fd56a255ea23fc9c",
+    "art-preview.css": "03079e35e0bf41f7e153331b5c145506734ce15b842ed69cee680f6e44b3f037",
+    "art-preview.html": "973125e052852ac89c92f7c685f4a49ba4a3616737daa9f52883baff863ddba4",
+    "art-preview.js": "da671af1c95d6cf732bc3503864c2b3c4ab2c2f0928955086cdf0299864e0846",
     "build-config.js": "c3b99daf70dee2916e2b531916b014ded89fafcdb20006431ef239ac4f3d0fdc",
     "decor.js": "617e976a6b21e0e49aff8b03618a3b332040d0d508dd043c7f638787cf4d86a9",
     "economy.js": "f753a9adc97e8e3fa6fb1543ffac21fd934c45bf9bbbab2bdb81877fe2124ce2",

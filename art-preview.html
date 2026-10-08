@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <title>Palm House · Art studio</title>
+    <link rel="stylesheet" href="art-preview.css" />
+  </head>
+  <body>
+    <canvas
+      id="studio"
+      aria-label="Interactive 3D visual prototype of a seaside hotel reception, bedroom and manager"
+    ></canvas>
+    <header>
+      <span>PALM HOUSE / ART STUDY 01</span>
+      <h1>A warmer welcome.</h1>
+      <p>A boutique seaside escape, crafted a little closer.</p>
+    </header>
+    <nav aria-label="Explore the art study">
+      <button data-view="all" aria-pressed="true">The hotel</button
+      ><button data-view="desk" aria-pressed="false">Reception</button
+      ><button data-view="room" aria-pressed="false">Bedroom</button
+      ><button data-view="player" aria-pressed="false">Our manager</button>
+    </nav>
+    <aside>
+      <strong id="caption">Soft upholstery. Warm oak. Sea-glass green.</strong>
+      <p id="detail">
+        A separate visual prototype. Your hotel and saved progress are
+        untouched.
+      </p>
+      <div>
+        <button id="motion" aria-pressed="true">Pause motion</button
+        ><button id="reset">Reset view</button
+        ><a href="index.html">Play your hotel ↗</a>
+      </div>
+      <small>Drag to orbit · Pinch or scroll to zoom</small>
+    </aside>
+    <p id="error" role="alert" hidden></p>
+    <script type="module" src="art-preview.js"></script>
+  </body>
+</html>
