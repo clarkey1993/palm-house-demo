@@ -43,17 +43,15 @@ export class HotelView {
       alpha: false,
       powerPreference: "high-performance",
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
     this.renderer.outputColorSpace = T.SRGBColorSpace;
     this.renderer.toneMapping = T.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.04;
+    this.renderer.toneMappingExposure = 1.08;
     // A transparent player-only pass sits above the fixed HTML price cards.
     this.playerOverlay = new T.WebGLRenderer({ antialias: true, alpha: true });
-    this.playerOverlay.setPixelRatio(
-      Math.min(window.devicePixelRatio || 1, 1.75),
-    );
+    this.playerOverlay.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.playerOverlay.outputColorSpace = this.renderer.outputColorSpace;
     this.playerOverlay.toneMapping = this.renderer.toneMapping;
     this.playerOverlay.toneMappingExposure = this.renderer.toneMappingExposure;
@@ -225,6 +223,22 @@ export class HotelView {
       if (spec) material.color.setHex(palette[spec.role] ?? spec.original);
     }
   }
+  clothTexture() {
+    if (this.weaveTexture) return this.weaveTexture;
+    const pixels = new Uint8Array(32 * 32 * 4);
+    for (let y = 0; y < 32; y++)
+      for (let x = 0; x < 32; x++) {
+        const i = (y * 32 + x) * 4,
+          value = 145 + (x % 4 === 0 || y % 4 === 0 ? 30 : 0);
+        pixels[i] = pixels[i + 1] = pixels[i + 2] = value;
+        pixels[i + 3] = 255;
+      }
+    const texture = new T.DataTexture(pixels, 32, 32);
+    texture.wrapS = texture.wrapT = T.RepeatWrapping;
+    texture.repeat.set(8, 8);
+    texture.needsUpdate = true;
+    return (this.weaveTexture = texture);
+  }
   fabric(role, original) {
     return { role, original };
   }
@@ -239,6 +253,11 @@ export class HotelView {
           roughness,
         });
         material.userData.decor = color;
+        if (["linen", "carpet"].includes(color.role)) {
+          material.bumpMap = this.clothTexture();
+          material.bumpScale = 0.014;
+          material.roughness = 0.95;
+        }
         this.materials.set(key, material);
       }
       return this.materials.get(key);
@@ -260,9 +279,10 @@ export class HotelView {
     return this.mesh(new T.BoxGeometry(w, h, d), color, x, y, z, parent);
   }
   round(w, h, d, color, x, y, z, parent = this.scene, r = 0.12) {
+    const bevel = h > 0.08 ? Math.min(0.045, h * 0.18, w * 0.04, d * 0.04) : 0;
     const shape = new T.Shape(),
-      hw = w / 2,
-      hd = d / 2;
+      hw = w / 2 - bevel,
+      hd = d / 2 - bevel;
     r = Math.min(r, hw, hd);
     shape.moveTo(-hw + r, -hd);
     shape.lineTo(hw - r, -hd);
@@ -274,16 +294,19 @@ export class HotelView {
     shape.lineTo(-hw, -hd + r);
     shape.quadraticCurveTo(-hw, -hd, -hw + r, -hd);
     const geo = new T.ExtrudeGeometry(shape, {
-      depth: h,
-      bevelEnabled: false,
+      depth: h - bevel * 2,
+      bevelEnabled: bevel > 0,
+      bevelSize: bevel,
+      bevelThickness: bevel,
+      bevelSegments: 2,
       curveSegments: 3,
     });
     geo.rotateX(-Math.PI / 2);
-    geo.translate(0, -h / 2, 0);
+    geo.translate(0, -h / 2 + bevel, 0);
     return this.mesh(geo, color, x, y, z, parent);
   }
   sphere(r, c, x, y, z, p = this.scene) {
-    return this.mesh(new T.SphereGeometry(r, 12, 8), c, x, y, z, p);
+    return this.mesh(new T.SphereGeometry(r, 16, 10), c, x, y, z, p);
   }
   cyl(top, bottom, h, c, x, y, z, p = this.scene) {
     return this.mesh(new T.CylinderGeometry(top, bottom, h, 16), c, x, y, z, p);
@@ -516,10 +539,10 @@ export class HotelView {
       this.round(4.6, 0.08, 3.6, 0xd9ab71, 0, 0.17, 10.3, this.scene, 0.6);
       for (let i = 0; i < 5; i++)
         this.cyl(0.055, 0.055, 0.65, 0xab8b55, -1.4, 0.48, 10 + i * 0.85);
-      this.round(4.4, 1.2, 1.3, 0xc88f5b, 0, 0.8, 7.65, this.scene, 0.3);
+      this.round(4.4, 1.2, 1.3, 0x996d4d, 0, 0.8, 7.65, this.scene, 0.3);
       for (let x = -1.9; x < 2; x += 0.2)
-        this.box(0.04, 0.88, 0.04, 0xad7247, x, 0.78, 8.31);
-      this.round(4.7, 0.22, 1.55, 0xffe6ae, 0, 1.49, 7.65, this.scene, 0.3);
+        this.cyl(0.055, 0.055, 1.02, 0xc89969, x, 0.8, 8.29);
+      this.round(4.7, 0.22, 1.55, 0xfff0d6, 0, 1.49, 7.65, this.scene, 0.3);
       this.sign(
         "RECEPTION",
         2.5,
@@ -528,7 +551,7 @@ export class HotelView {
         0.95,
         8.325,
         this.scene,
-        "#c58b57",
+        "#315f51",
         "#fff3d0",
         54,
       );
@@ -537,6 +560,28 @@ export class HotelView {
       this.cyl(0.13, 0.17, 0.1, 0xe3b753, 1.45, 1.65, 7.7);
       this.sphere(0.14, 0xffd98a, 1.45, 1.72, 7.7);
       this.plant(-1.72, 7.6, 0.45).position.y = 1.6;
+      this.round(
+        0.57,
+        0.045,
+        0.38,
+        0xbb8c67,
+        0.45,
+        1.62,
+        7.8,
+        this.scene,
+        0.015,
+      );
+      this.round(
+        0.49,
+        0.015,
+        0.33,
+        0xfffae9,
+        0.45,
+        1.65,
+        7.8,
+        this.scene,
+        0.006,
+      );
     }
     this.round(4.5, 0.1, 3.2, 0xd9c3a0, 7.8, 0.19, 9.5, this.scene, 0.5);
     this.round(4.5, 0.55, 1.2, 0xc87561, 7.8, 0.6, 8.7, this.scene, 0.2);
@@ -987,8 +1032,10 @@ export class HotelView {
           this.box(1, 0.7, 1, 0xc59d71, x, 0.55, -5, dining);
     }
     if (s.extraDesk) {
-      this.round(1.8, 1.2, 1.3, 0xc88f5b, -3.3, 0.8, 7.65, p, 0.2);
-      this.round(1.9, 0.15, 1.5, 0xffe6ae, -3.3, 1.5, 7.65, p, 0.2);
+      for (let x = -4.05; x < -2.5; x += 0.2)
+        this.cyl(0.05, 0.05, 1.02, 0xc89969, x, 0.8, 8.29, p);
+      this.round(1.8, 1.2, 1.3, 0x996d4d, -3.3, 0.8, 7.65, p, 0.2);
+      this.round(1.9, 0.15, 1.5, 0xfff0d6, -3.3, 1.5, 7.65, p, 0.2);
       this.box(0.65, 0.5, 0.12, 0x315952, -3.3, 1.8, 7.55, p);
     }
     if (s.elevator || s.floor) {
@@ -1252,15 +1299,18 @@ export class HotelView {
       g,
       0.12,
     );
+    for (let x = -1.45; x < 1.5; x += 0.48)
+      this.round(0.025, 0.57, 0.018, 0xb6c9af, x, 1.12, -1.598, g, 0.005);
     this.round(3.3, 0.28, 3.65, 0xfff9e9, 0, 0.91, 0.13, g, 0.22);
+    this.round(3.34, 0.13, 3.15, 0xf4ead7, 0, 1.075, 0.38, g, 0.055);
     this.round(
       3.34,
-      0.17,
-      2.2,
+      0.12,
+      1.25,
       this.fabric("linen", lv === 2 ? 0xe2bc6e : theme),
       0,
-      1.13,
-      0.8,
+      1.19,
+      1.05,
       g,
       0.12,
     );
@@ -1292,6 +1342,20 @@ export class HotelView {
       this.round(0.95, 0.7, 0.82, 0xc09565, x, 0.63, -1.27, g, 0.1);
       this.cyl(0.09, 0.15, 0.38, 0xb59659, x, 1.11, -1.27, g);
       this.cyl(0.28, 0.38, 0.4, 0xffedb8, x, 1.45, -1.27, g);
+    }
+    this.round(0.82, 0.76, 0.07, 0xc7a36f, 2.8, 1.22, -3.13, g, 0.025);
+    this.round(0.69, 0.63, 0.025, 0xfff4dc, 2.8, 1.22, -3.081, g, 0.01);
+    for (let k = 0; k < 3; k++) {
+      const leaf = this.sphere(
+        0.12,
+        0x6c9680,
+        2.8 + Math.sin(k * 2) * 0.13,
+        1.04 + k * 0.16,
+        -3.06,
+        g,
+      );
+      leaf.scale.set(1, 0.45, 0.12);
+      leaf.rotation.z = k * 0.6;
     }
     this.plant(2.85, 2.5, 0.9, g);
     this.round(
@@ -1340,7 +1404,14 @@ export class HotelView {
         : [0xe09675, 0x75a9bd, 0xe9c368, 0x9890b9, 0x8da77b][color % 5],
       skin = [0xdbaa7f, 0xbd8059, 0xefd0a5, 0x98684e][color % 4];
     g.userData.seed = color + (player ? 19 : 0);
-    const torso = this.cyl(0.26, 0.32, 0.65, shirt, 0, 0.9, 0, g);
+    const torso = this.mesh(
+      new T.CapsuleGeometry(0.27, 0.2, 4, 12),
+      shirt,
+      0,
+      0.9,
+      0,
+      g,
+    );
     g.userData.torso = torso;
     this.cyl(0.12, 0.13, 0.16, skin, 0, 1.27, 0, g);
     this.cyl(0.15, 0.19, 0.07, player ? 0xfff4d8 : shirt, 0, 1.23, 0, g);
@@ -1354,8 +1425,26 @@ export class HotelView {
       g,
     );
     hair.scale.y = 0.57;
-    for (const x of [-0.11, 0.11])
-      this.sphere(0.025, 0x493d33, x, 1.51, 0.278, g);
+    for (const x of [-0.11, 0.11]) {
+      this.sphere(0.032, 0x343d35, x, 1.54, 0.273, g);
+      if (player) this.sphere(0.01, 0xfff9ed, x - 0.008, 1.55, 0.299, g);
+    }
+    this.sphere(0.052, skin, 0, 1.48, 0.292, g);
+    for (const x of [-0.29, 0.29]) this.sphere(0.061, skin, x, 1.5, 0, g);
+    const smile = this.mesh(
+      new T.TorusGeometry(0.055, 0.009, 5, 10, Math.PI),
+      0x815441,
+      0,
+      1.4,
+      0.28,
+      g,
+    );
+    smile.rotation.z = Math.PI;
+    if (player) {
+      const sweep = this.sphere(0.18, 0x654d39, -0.12, 1.73, 0.12, g);
+      sweep.scale.set(1.2, 0.45, 0.85);
+      sweep.rotation.z = -0.2;
+    }
     const legs = [],
       arms = [],
       shoes = [];
@@ -1363,7 +1452,14 @@ export class HotelView {
       const leg = new T.Group();
       leg.position.set(x, 0.54, 0);
       g.add(leg);
-      this.box(0.19, 0.43, 0.2, player ? 0x426c60 : 0x4c5964, 0, -0.22, 0, leg);
+      this.mesh(
+        new T.CapsuleGeometry(0.095, 0.24, 4, 10),
+        player ? 0x426c60 : 0x4c5964,
+        0,
+        -0.22,
+        0,
+        leg,
+      );
       legs.push(leg);
       shoes.push(
         this.round(0.22, 0.14, 0.33, 0x534637, 0, -0.41, 0.045, leg, 0.06),
@@ -1378,7 +1474,7 @@ export class HotelView {
       arms.push(arm);
     }
     if (player) {
-      this.box(0.35, 0.42, 0.035, 0x79a798, 0, 0.79, 0.275, g);
+      this.round(0.43, 0.44, 0.055, 0x3d7769, 0, 0.79, 0.262, g, 0.022);
       this.box(0.06, 0.07, 0.03, 0xeec77d, 0.13, 1.09, 0.25, g);
       this.cyl(0.29, 0.29, 0.13, 0xfff4d8, 0, 1.88, 0, g);
       this.cyl(0.34, 0.34, 0.04, 0xf7d787, 0, 1.83, 0.01, g);
@@ -2115,6 +2211,7 @@ export class HotelView {
     });
     for (const material of materials) {
       if (material.map) textures.add(material.map);
+      if (material.bumpMap) textures.add(material.bumpMap);
       material.dispose();
     }
     for (const texture of textures) texture.dispose();
