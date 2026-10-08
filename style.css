@@ -1524,3 +1524,32 @@ input:focus-visible {
 .book-tabs button {
   flex-shrink: 0;
 }
+
+.restoration-card {
+  padding: 18px;
+  margin-bottom: 16px;
+  border: 1px solid #bccfb5;
+  border-radius: 16px;
+  background: #fff9ea;
+}
+.restoration-card p {
+  margin: 8px 0;
+  font-size: 13px;
+}
+.restoration-card button {
+  margin-top: 10px;
+  min-height: 44px;
+  width: 100%;
+}
+.restoration-card.claimed {
+  background: #e3ecd9;
+}
+.restart-section {
+  border-top: 1px solid #bccfb5;
+  margin-top: 22px;
+  padding-top: 10px;
+}
+#restart-confirmation button {
+  margin: 5px 0;
+  min-height: 44px;
+}

@@ -310,7 +310,7 @@ export function createGame(saved) {
     runner: false,
     runnerCash: 0,
     cleaned: 0,
-    visits: { pool: 0, cafe: 0 },
+    visits: { pool: 0, cafe: 0, restaurant: 0, gym: 0 },
     pool: false,
     desk: false,
     concierge: false,
@@ -405,6 +405,8 @@ export function createGame(saved) {
       s.dirty[i] ? clamp(Number(saved.cleaning?.[i]) || 0, 0, 0.99) : 0,
     );
     s.visits = {
+      restaurant: clamp(Number(saved.visits?.restaurant) || 0, 0, 1e9),
+      gym: clamp(Number(saved.visits?.gym) || 0, 0, 1e9),
       pool: clamp(Number(saved.visits?.pool) || 0, 0, 1e9),
       cafe: clamp(Number(saved.visits?.cafe) || 0, 0, 1e9),
     };
@@ -1204,6 +1206,7 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
       if (v.timer <= 0) {
         const value = s.gymUpgrade ? 65 : 40;
         dropCash(g, value, "gym");
+        s.visits.gym++;
         s.earned += value;
         v.satisfaction = Math.min(100, (v.satisfaction || 75) + 6);
         g.events.push({ type: "tip", ...FACILITIES.gym, value });
@@ -1274,6 +1277,7 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
         if (v.timer <= 0) {
           const value = 45 + s.kitchen * 15;
           dropCash(g, value, "restaurant");
+          s.visits.restaurant++;
           s.earned += value;
           v.satisfaction = Math.min(100, (v.satisfaction || 75) + 10);
           g.events.push({ type: "tip", ...FACILITIES.restaurant, value });

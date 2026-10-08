@@ -8,6 +8,7 @@ const TYPES = new Set([
   "error",
   "boundary",
   "restore",
+  "restart",
 ]);
 const safeSeconds = (n) =>
   Number.isFinite(n) ? Math.max(0, Math.min(n, 1e8)) : 0;
@@ -64,6 +65,7 @@ export class PlaytestLog {
           });
         this.seen = new Set(
           this.events
+            .slice(this.events.findLastIndex((e) => e.type === "restart") + 1)
             .filter((e) => e.type === "step" || e.type === "opening-complete")
             .map((e) => e.type + ":" + e.id),
         );

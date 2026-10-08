@@ -1,3 +1,9 @@
+import {
+  RESTORATION,
+  nextRestoration,
+  restorationReady,
+  finishRestoration,
+} from "./restoration.js";
 import { createSeaAmbience } from "./ambience.js";
 import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js";
 import { openingTask } from "./onboarding.js";
@@ -300,6 +306,11 @@ window.addEventListener("unhandledrejection", () =>
 );
 let welcomeVisible = false;
 function showWelcome() {
+  $("#demo-eyebrow").textContent = "YOUR LITTLE ESCAPE";
+  $("#demo-continue").textContent = "Open my hotel →";
+  $("#demo-feedback").hidden = true;
+  $("#demo-footnote").textContent =
+    "Your hotel pauses when you leave. Take your time.";
   welcomeVisible = true;
   paused = true;
   release();
@@ -803,6 +814,7 @@ function renderJourney() {
     }
     return;
   }
+  const littleRewards = renderRestoration(list);
   for (const [index, c] of CHAPTERS.filter(
     (c) =>
       !BUILD.openingDemo ||
@@ -840,9 +852,120 @@ function renderJourney() {
       }
     };
     card.append(number, body, reward);
-    list.append(card);
+    littleRewards.append(card);
   }
 }
+
+function renderRestoration(list) {
+  const intro = document.createElement("p");
+  intro.textContent =
+    "Restore your seaside escape, one chapter at a time. Work towards any goal now; celebrate chapters in order. Completed service counts never go backwards.";
+  list.append(intro);
+  for (const c of RESTORATION) {
+    const done = hotel.restoration.includes(c.id);
+    const card = document.createElement("article");
+    card.className = "restoration-card" + (done ? " claimed" : "");
+    const title = document.createElement("h3");
+    title.textContent = (done ? "✓ " : "") + c.title;
+    card.append(title);
+    for (const goal of c.goals) {
+      const line = document.createElement("p");
+      line.textContent =
+        goal.label +
+        " · " +
+        Math.min(goal.target, goal.value(hotel)) +
+        "/" +
+        goal.target;
+      card.append(line);
+    }
+    const button = document.createElement("button");
+    button.textContent = done
+      ? "Celebrated"
+      : nextRestoration(hotel)?.id !== c.id
+        ? "Complete the previous chapter"
+        : "Celebrate · +$" + c.reward;
+    button.disabled = done || !restorationReady(hotel, c);
+    button.onclick = () => {
+      if (!finishRestoration(hotel, c.id)) return;
+      save();
+      renderJourney();
+      hud();
+      view.render(0);
+      notify(c.title + " · +$" + c.reward);
+      if (c.id === "opening") showGrandOpening();
+    };
+    card.append(button);
+    list.append(card);
+  }
+  const rewards = document.createElement("details");
+  const heading = document.createElement("summary");
+  const ready = CHAPTERS.filter(
+    (c) => !hotel.claimed.includes(c.id) && c.value(hotel) >= c.goal,
+  ).length;
+  heading.textContent =
+    "Little rewards along the way" + (ready ? " · " + ready + " ready" : "");
+  rewards.append(heading);
+  list.append(rewards);
+  return rewards;
+}
+function showGrandOpening() {
+  $("#management").hidden = true;
+  welcomeVisible = false;
+  paused = true;
+  syncAudio();
+  $("#demo-eyebrow").textContent = "PALM HOUSE / GRAND OPENING";
+  $("#demo-title").textContent = "Your seaside escape is open.";
+  $("#demo-description").textContent =
+    "From one little room to a hotel full of life. You made a place for people to rest, gather and enjoy the sea. Thank you for bringing Palm House to life.";
+  $("#demo-milestones").textContent =
+    `${hotel.floors[0].state.welcomed} welcomes · ${hotel.happy} happy reviews · ${hotel.floors.slice(0, 2).reduce((n, g) => n + g.state.levels.filter(Boolean).length, 0)} rooms · 7 chapters completed`;
+  $("#welcome-consent-row").hidden = true;
+  $("#demo-feedback").hidden = true;
+  $("#demo-footnote").textContent =
+    "Keep welcoming guests and making it yours. No reset required.";
+  $("#demo-continue").textContent = "Enjoy my hotel →";
+  $("#demo-dialog").hidden = false;
+  $("#demo-continue").focus();
+}
+$("#restart-hotel").onclick = () => {
+  $("#restart-confirmation").hidden = false;
+  $("#confirm-restart").focus();
+};
+$("#cancel-restart").onclick = () => {
+  $("#restart-confirmation").hidden = true;
+  $("#restart-hotel").focus();
+};
+$("#confirm-restart").onclick = () => {
+  try {
+    const fresh = applyOpeningPolicy(createHotel(), BUILD.openingDemo);
+    if (!preview)
+      lastSavedRaw = saveStore.restart(
+        serializeHotel(fresh),
+        serializeHotel(hotel),
+        lastSavedRaw,
+      );
+    hotel = fresh;
+    seenDecor.clear();
+    seenDecor.add("palm");
+    playtest.record("restart", "fresh-hotel");
+    playtest.seen.clear();
+    playtest.flush();
+    pendingRestore = null;
+    $("#confirm-restore").hidden = true;
+    $("#restart-confirmation").hidden = true;
+    $("#management").hidden = true;
+    arriveOnFloor();
+    view.setDecor(hotel.decor);
+    hud();
+    view.render(0);
+    showWelcome();
+  } catch (error) {
+    $("#restart-feedback").textContent =
+      "Could not safely start again. Your current hotel has been kept. Download a backup and try again.";
+    if (error instanceof SaveConflictError) showSaveConflict();
+  }
+};
+
 $("#easygoing").onchange = () => {
   hotel.easygoing = $("#easygoing").checked;
   save();
@@ -1241,6 +1364,7 @@ function hud() {
     head = full ? "ROOMS ARE RESTING" : "MAKE YOURSELF AT HOME";
     icon = "⌂";
   }
+  game.restorationCount = BUILD.openingDemo ? 0 : hotel.restoration.length;
   const chapter = nextChapter(hotel);
   const ready = CHAPTERS.some(
     (c) => !hotel.claimed.includes(c.id) && c.value(hotel) >= c.goal,
@@ -1253,6 +1377,18 @@ function hud() {
       "/" +
       chapter.goal
     : "Your seaside escape";
+  if (!BUILD.openingDemo) {
+    const stage = nextRestoration(hotel);
+    $("#chapter-line").textContent = stage
+      ? stage.title +
+        " · " +
+        stage.goals.filter((g) => g.value(hotel) >= g.target).length +
+        "/" +
+        stage.goals.length
+      : "Grand opening · your seaside escape";
+    if (stage && restorationReady(hotel, stage))
+      $("#manage").classList.add("reward-ready");
+  }
   if (BUILD.openingDemo) {
     const step = nextOpeningStep(hotel),
       task = openingTask(hotel);

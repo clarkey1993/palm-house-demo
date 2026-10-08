@@ -1569,7 +1569,47 @@ export class HotelView {
       });
     }
   }
+  updateRestoration() {
+    if (this.game.state.floor) return;
+    const count = this.game.restorationCount || 0;
+    if (!count && !this.restorationDisplay) return;
+    if (!this.restorationDisplay) {
+      const group = new T.Group();
+      this.scene.add(group);
+      this.restorationDisplay = group;
+      this.box(8, 0.055, 0.055, 0xd0ad70, 0, 2.7, 14, group);
+      for (const x of [-4, 4])
+        this.box(0.1, 2.8, 0.1, 0xd0ad70, x, 1.4, 14, group);
+      this.restorationFlags = [];
+      for (let i = 0; i < 7; i++) {
+        const flag = this.box(
+          0.6,
+          0.55,
+          0.035,
+          [0x72b4a0, 0xe2bc6e, 0xdc9b8a][i % 3],
+          -3 + i,
+          2.38,
+          14,
+          group,
+        );
+        this.restorationFlags.push(flag);
+      }
+      this.openingPlaque = this.sign(
+        "GRAND OPENING",
+        3.2,
+        0.55,
+        -7,
+        1.6,
+        12,
+        group,
+      );
+    }
+    this.restorationDisplay.visible = count > 0;
+    this.restorationFlags.forEach((flag, i) => (flag.visible = i < count));
+    this.openingPlaque.visible = count === 7;
+  }
   render(dt) {
+    this.updateRestoration();
     const g = this.game,
       s = g.state;
     let targetX =

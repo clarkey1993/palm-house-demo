@@ -1,3 +1,4 @@
+import { RESTORATION } from "./restoration.js";
 import { selectDecor } from "./decor.js";
 import { ECONOMY } from "./economy.js";
 import { createRooftop, updateRooftop } from "./rooftop.js";
@@ -40,6 +41,7 @@ export function createHotel(saved) {
   if (!saved) ground.state.cash = ECONOMY.startingCash;
   const h = {
     decor: "palm",
+    restoration: [],
     openingCelebrated: !!saved?.openingCelebrated,
     liftReady: true,
     liftChoice: false,
@@ -97,6 +99,15 @@ export function createHotel(saved) {
     h.floors.push(createRooftop(saved?.rooftop));
     h.floors[2].state.cash = ground.state.cash;
   }
+  // Only retain a contiguous completed journey; old saves keep all gameplay.
+  for (const chapter of RESTORATION) {
+    if (
+      !Array.isArray(saved?.restoration) ||
+      !saved.restoration.includes(chapter.id)
+    )
+      break;
+    h.restoration.push(chapter.id);
+  }
   selectDecor(h, saved?.decor);
   return h;
 }
@@ -116,6 +127,7 @@ export function serializeHotel(h) {
     upper: h.floors[1] ? serialize(h.floors[1]) : undefined,
     rooftop: h.floors[2] ? serialize(h.floors[2]) : undefined,
     decor: h.decor,
+    restoration: [...h.restoration],
     openingCelebrated: h.openingCelebrated,
     claimed: [...h.claimed],
     easygoing: h.easygoing,
