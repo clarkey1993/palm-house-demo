@@ -1,9 +1,10 @@
 {
   "channel": "playtest",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "files": {
     "ambience.js": "c7b200291a59b3563cb40ad9d9276108c2a7bc0ff78f489e11662a9af0c255a0",
-    "build-config.js": "259cf50add079d6b8dc032d814d56043ccb75ce80cafbee246ea430c76cae79c",
+    "animation.js": "1db2906c0be9e05ab30604c8fa101c27f7817312f73a5ec3fd56a255ea23fc9c",
+    "build-config.js": "fc08bdccf754a878c08398d0acc7f364bd25844106b0d11b4b76c5a021b5a0cc",
     "decor.js": "617e976a6b21e0e49aff8b03618a3b332040d0d508dd043c7f638787cf4d86a9",
     "economy.js": "f753a9adc97e8e3fa6fb1543ffac21fd934c45bf9bbbab2bdb81877fe2124ce2",
     "hotel.js": "d6092e1b77effe19d6e1bbebfdb62602319e3c30896f620d38a0c83d4d3e4544",
@@ -25,6 +26,6 @@
     "vendor/LICENSE": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
     "vendor/three.core.js": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20",
     "vendor/three.module.js": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a",
-    "view.js": "42489a4e8f025beea169453ac70df8d3cfcb687fc4f45d1d5789ebc2552fa049"
+    "view.js": "c7c3315480ecb3ca07c8cf2825826a8ec2b711c9e88a04ffb7afc378f5351f7c"
   }
 }

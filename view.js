@@ -1,3 +1,4 @@
+import { stepMotion, motionPose } from "./animation.js";
 import { DECOR } from "./decor.js";
 import * as T from "./vendor/three.module.js";
 import {
@@ -66,6 +67,10 @@ export class HotelView {
     this.actorMap = new Map();
     this.moneyMap = new Map();
     this.effects = [];
+    this.reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    this.shoreFoam = [];
     this.floaters = [];
     this.waves = [];
     this.palms = [];
@@ -406,7 +411,7 @@ export class HotelView {
     this.box(64, 0.08, 160, 0x429eaf, -49, -1.12, 0);
     this.box(5, 0.09, 160, 0x6fc4c5, -19.5, -1.06, 0);
     for (let i = 0; i < 24; i++) {
-      this.round(
+      const foam = this.round(
         0.13,
         0.02,
         3.5 + (i % 3),
@@ -417,6 +422,7 @@ export class HotelView {
         this.scene,
         0.05,
       );
+      this.shoreFoam.push({ mesh: foam, x: foam.position.x, phase: i * 0.7 });
       this.round(
         2 + (i % 4),
         0.02,
@@ -1333,7 +1339,11 @@ export class HotelView {
         ? 0xfff4d8
         : [0xe09675, 0x75a9bd, 0xe9c368, 0x9890b9, 0x8da77b][color % 5],
       skin = [0xdbaa7f, 0xbd8059, 0xefd0a5, 0x98684e][color % 4];
-    this.cyl(0.26, 0.32, 0.65, shirt, 0, 0.9, 0, g);
+    g.userData.seed = color + (player ? 19 : 0);
+    const torso = this.cyl(0.26, 0.32, 0.65, shirt, 0, 0.9, 0, g);
+    g.userData.torso = torso;
+    this.cyl(0.12, 0.13, 0.16, skin, 0, 1.27, 0, g);
+    this.cyl(0.15, 0.19, 0.07, player ? 0xfff4d8 : shirt, 0, 1.23, 0, g);
     this.sphere(0.3, skin, 0, 1.5, 0, g);
     const hair = this.sphere(
       0.305,
@@ -1350,21 +1360,20 @@ export class HotelView {
       arms = [],
       shoes = [];
     for (const x of [-0.15, 0.15]) {
-      const leg = this.box(
-        0.19,
-        0.43,
-        0.2,
-        player ? 0x426c60 : 0x4c5964,
-        x,
-        0.32,
-        0,
-        g,
-      );
+      const leg = new T.Group();
+      leg.position.set(x, 0.54, 0);
+      g.add(leg);
+      this.box(0.19, 0.43, 0.2, player ? 0x426c60 : 0x4c5964, 0, -0.22, 0, leg);
       legs.push(leg);
       shoes.push(
-        this.round(0.22, 0.14, 0.33, 0x534637, x, 0.13, 0.045, g, 0.06),
+        this.round(0.22, 0.14, 0.33, 0x534637, 0, -0.41, 0.045, leg, 0.06),
       );
-      const arm = this.cyl(0.075, 0.09, 0.48, skin, x * 2.2, 0.92, 0, g);
+      const arm = new T.Group();
+      arm.position.set(x * 2.2, 1.15, 0);
+      g.add(arm);
+      this.cyl(0.085, 0.09, 0.2, shirt, 0, -0.09, 0, arm);
+      this.cyl(0.07, 0.08, 0.28, skin, 0, -0.32, 0, arm);
+      this.sphere(0.077, skin, 0, -0.47, 0, arm);
       arm.rotation.z = x < 0 ? -0.12 : 0.12;
       arms.push(arm);
     }
@@ -1399,6 +1408,8 @@ export class HotelView {
         0.06,
       );
       this.box(0.2, 0.13, 0.05, 0x8a704e, 0.5, 0.72, 0, luggage);
+      for (const x of [0.4, 0.6])
+        this.sphere(0.055, 0x534637, x, 0.11, 0, luggage);
       const cup = new T.Group();
       g.add(cup);
       this.cyl(0.12, 0.1, 0.2, 0xfff3dd, -0.37, 1.05, 0.28, cup);
@@ -1514,7 +1525,7 @@ export class HotelView {
     if (e.type === "build") {
       this.rebuild();
       const palette = [0xf4c569, 0xfff5d5, 0x76b69b, 0xe69c7d];
-      for (let i = 0; i < 32; i++) {
+      for (let i = 0; i < (this.reducedMotion ? 0 : 22); i++) {
         const m = this.box(0.12, 0.07, 0.16, palette[i % 4], e.x, 0.4, e.z);
         this.effects.push({
           m,
@@ -1527,7 +1538,7 @@ export class HotelView {
       }
     }
     if (e.type === "clean") {
-      for (let i = 0; i < 18; i++) {
+      for (let i = 0; i < (this.reducedMotion ? 0 : 10); i++) {
         const m = this.sphere(0.055 + (i % 3) * 0.018, 0xd9f5e3, e.x, 0.5, e.z);
         this.effects.push({
           m,
@@ -1651,13 +1662,14 @@ export class HotelView {
     this.carried.rotation.z = g.player.moving
       ? Math.sin(g.time * 8) * 0.025
       : 0;
-    this.player.userData.arms.forEach(
-      (a) => (a.rotation.x = carrying ? -1.1 : 0),
-    );
+    this.player.userData.arms.forEach((a) => {
+      if (carrying) a.rotation.x = -1.1;
+    });
     if (g.cleanRoom >= 0) this.cleaningPose(this.player);
     this.player.userData.mop.visible = g.cleanRoom >= 0;
     this.player.userData.mop.rotation.y = Math.sin(g.time * 10) * 0.4;
     this.receptionActors?.forEach((actor, i) => {
+      this.animateActor(actor, { moving: false, angle: actor.rotation.y }, dt);
       const working =
         onDuty(s) &&
         (s.extraDesk && i === 1 ? g.secondService > 0 : g.service > 0);
@@ -1675,7 +1687,7 @@ export class HotelView {
       a.rotation.y = worker.angle;
       this.animateActor(a, worker, dt);
       if (worker.phase === "clean" && onDuty(s)) this.cleaningPose(a);
-      else a.userData.arms.forEach((arm) => (arm.rotation.x = 0));
+
       a.userData.mop.visible = true;
       a.userData.mop.rotation.y =
         worker.phase === "clean" && onDuty(s)
@@ -1689,9 +1701,9 @@ export class HotelView {
       a.rotation.y = runner.angle;
       this.animateActor(a, runner, dt);
       a.userData.cargo.visible = runner.cargo > 0;
-      a.userData.arms.forEach(
-        (arm) => (arm.rotation.x = runner.cargo > 0 ? -1.1 : 0),
-      );
+      a.userData.arms.forEach((arm) => {
+        if (runner.cargo > 0) arm.rotation.x = -1.1;
+      });
     });
     this.roomMess.forEach((a, i) => {
       a.group.visible = s.dirty[i];
@@ -1761,7 +1773,14 @@ export class HotelView {
         "skyLounge",
         "restaurantEating",
       ].includes(guest.phase);
-      a.userData.luggage.visible = !coffee;
+      a.userData.luggage.visible = [
+        "queue",
+        "room",
+        "exit",
+        "leavingRoom",
+        "toLift",
+        "fromLift",
+      ].includes(guest.phase);
       a.userData.cup.visible = coffee;
       a.userData.float.visible = false;
       a.userData.legs.forEach((l) => (l.visible = true));
@@ -1786,9 +1805,12 @@ export class HotelView {
         a.userData.luggage.visible = false;
       }
       if (coffee) {
-        a.userData.cup.position.y = 0.08 + Math.sin(g.time * 2) * 0.08;
-        a.userData.arms[0].rotation.x = -0.9;
-      } else a.userData.arms[0].rotation.x = 0;
+        const sip = Math.pow(Math.max(0, Math.sin(g.time * 1.4 + guest.id)), 4);
+        a.userData.cup.position.y = 0.04 + sip * 0.3;
+        a.userData.cup.position.z = sip * 0.06;
+        a.userData.cup.rotation.x = -0.2 * sip;
+        a.userData.arms[0].rotation.x = -0.8 - sip * 0.4;
+      }
     }
     for (const [id, a] of this.actorMap)
       if (!ids.has(id)) {
@@ -1957,14 +1979,19 @@ export class HotelView {
     }
     for (const e of this.effects) {
       e.life -= dt;
-      if (e.toPlayer)
-        e.m.position.lerp(new T.Vector3(g.player.x, 1, g.player.z), dt * 12);
-      else if (e.target)
-        e.m.position.lerp(
-          new T.Vector3(e.target.x, e.target.y, e.target.z),
-          dt * 14,
+      if (e.toPlayer || e.target) {
+        e.origin ??= e.m.position.clone();
+        const target = e.target || { x: g.player.x, y: 1, z: g.player.z };
+        const progress = Math.min(1, Math.max(0, 1 - e.life / e.max));
+        const eased = 1 - Math.pow(1 - progress, 2);
+        e.m.position.set(
+          e.origin.x + (target.x - e.origin.x) * eased,
+          e.origin.y +
+            (target.y - e.origin.y) * eased +
+            (this.reducedMotion ? 0 : Math.sin(progress * Math.PI) * 0.45),
+          e.origin.z + (target.z - e.origin.z) * eased,
         );
-      else {
+      } else {
         e.vy -= 12 * dt;
         e.m.position.x += e.vx * dt;
         e.m.position.y += e.vy * dt;
@@ -1986,12 +2013,22 @@ export class HotelView {
     }
     for (const f of this.floaters.filter((f) => f.life <= 0)) f.el.remove();
     this.floaters = this.floaters.filter((f) => f.life > 0);
+    for (const foam of this.shoreFoam) {
+      const tide = this.reducedMotion
+        ? 0
+        : Math.sin(g.time * 0.55 + foam.phase);
+      foam.mesh.position.x = foam.x + tide * 0.22;
+      foam.mesh.scale.z = 1 + tide * 0.08;
+    }
     this.palms.forEach(
       (p, i) => (p.rotation.z = Math.sin(g.time * 0.6 + i) * 0.017),
     );
-    this.waves.forEach(
-      (m, i) => (m.position.x += Math.sin(g.time + i) * dt * 0.08),
-    );
+    this.waves.forEach((m, i) => {
+      m.userData.baseX ??= m.position.x;
+      m.position.x =
+        m.userData.baseX +
+        (this.reducedMotion ? 0 : Math.sin(g.time * 0.65 + i) * 0.12);
+    });
     if (this.floatRing) {
       this.floatRing.position.y = 0.61 + Math.sin(g.time * 1.6) * 0.07;
       this.floatRing.rotation.z = Math.sin(g.time) * 0.1;
@@ -2093,11 +2130,31 @@ export class HotelView {
     );
     actor.position.y = 0.012 * (1 + scrub);
   }
-  animateActor(a, v) {
-    const swing = v.moving ? Math.sin(this.game.time * 14) * 0.35 : 0;
-    a.userData.legs.forEach((l, i) => (l.rotation.x = swing * (i ? 1 : -1)));
-    a.position.y = v.moving
-      ? Math.abs(Math.sin(this.game.time * 14)) * 0.045
-      : 0;
+  animateActor(a, v, dt = 0.016) {
+    const state = stepMotion(
+      a.userData.motion,
+      {
+        x: a.position.x,
+        z: a.position.z,
+        angle: v.angle ?? a.rotation.y,
+        moving: v.moving,
+      },
+      dt,
+      a.userData.seed,
+      this.reducedMotion,
+    );
+    a.userData.motion = state;
+    const pose = motionPose(state, this.game.time);
+    a.rotation.y = state.angle;
+    a.rotation.x = pose.lean;
+    a.position.y = pose.bob;
+    a.userData.torso.scale.y = pose.breath;
+    a.userData.legs.forEach(
+      (leg, i) => (leg.rotation.x = pose.leg * (i ? 1 : -1)),
+    );
+    a.userData.arms.forEach(
+      (arm, i) => (arm.rotation.x = pose.arm * (i ? 1 : -1)),
+    );
+    if (a.userData.luggage) a.userData.luggage.rotation.x = pose.leg * 0.12;
   }
 }
