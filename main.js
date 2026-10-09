@@ -1,17 +1,17 @@
-import { mountFeedback } from "./feedback.js?v=a8268884754de4a5";
-import { preloadFurniture } from "./furniture.js?v=a8268884754de4a5";
+import { mountFeedback } from "./feedback.js?v=adf6c2e57a2a91cf";
+import { preloadFurniture } from "./furniture.js?v=adf6c2e57a2a91cf";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=a8268884754de4a5";
-import { createSeaAmbience } from "./ambience.js?v=a8268884754de4a5";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=a8268884754de4a5";
-import { openingTask } from "./onboarding.js?v=a8268884754de4a5";
-import { BUILD } from "./build-config.js?v=a8268884754de4a5";
-import { BrowserSaveStore } from "./save-store.js?v=a8268884754de4a5";
-import { PlaytestLog } from "./playtest.js?v=a8268884754de4a5";
+} from "./restoration.js?v=adf6c2e57a2a91cf";
+import { createSeaAmbience } from "./ambience.js?v=adf6c2e57a2a91cf";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=adf6c2e57a2a91cf";
+import { openingTask } from "./onboarding.js?v=adf6c2e57a2a91cf";
+import { BUILD } from "./build-config.js?v=adf6c2e57a2a91cf";
+import { BrowserSaveStore } from "./save-store.js?v=adf6c2e57a2a91cf";
+import { PlaytestLog } from "./playtest.js?v=adf6c2e57a2a91cf";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -19,7 +19,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=a8268884754de4a5";
+} from "./opening.js?v=adf6c2e57a2a91cf";
 import {
   createGame,
   update,
@@ -44,7 +44,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=a8268884754de4a5";
+} from "./model.js?v=adf6c2e57a2a91cf";
 import {
   createHotel,
   serializeHotel,
@@ -56,12 +56,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=a8268884754de4a5";
-import { HotelView } from "./view.js?v=a8268884754de4a5";
-import { RooftopView } from "./rooftop-view.js?v=a8268884754de4a5";
-import { roofValue } from "./rooftop.js?v=a8268884754de4a5";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=a8268884754de4a5";
-import { parseSave, SaveConflictError } from "./saves.js?v=a8268884754de4a5";
+} from "./hotel.js?v=adf6c2e57a2a91cf";
+import { HotelView } from "./view.js?v=adf6c2e57a2a91cf";
+import { RooftopView } from "./rooftop-view.js?v=adf6c2e57a2a91cf";
+import { roofValue } from "./rooftop.js?v=adf6c2e57a2a91cf";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=adf6c2e57a2a91cf";
+import { parseSave, SaveConflictError } from "./saves.js?v=adf6c2e57a2a91cf";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -1683,7 +1683,8 @@ function frame(t) {
                     ? "A new room is ready!"
                     : "Suite upgraded · higher room payments."
                   : e.i === 10
-                    ? "Garden wing open! Two furnished rooms are ready."
+                    ? (game.state.floor === 1 ? "Sky wing" : "Garden wing") +
+                      " open! Two furnished rooms are ready."
                     : e.i === 11
                       ? "Training complete · your team works faster."
                       : e.i === 12

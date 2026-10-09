@@ -1,8 +1,8 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=a8268884754de4a5";
-import { furniture } from "./furniture.js?v=a8268884754de4a5";
-import { stepMotion, motionPose } from "./animation.js?v=a8268884754de4a5";
-import { DECOR } from "./decor.js?v=a8268884754de4a5";
-import * as T from "./vendor/three.module.js?v=a8268884754de4a5";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=adf6c2e57a2a91cf";
+import { furniture } from "./furniture.js?v=adf6c2e57a2a91cf";
+import { stepMotion, motionPose } from "./animation.js?v=adf6c2e57a2a91cf";
+import { DECOR } from "./decor.js?v=adf6c2e57a2a91cf";
+import * as T from "./vendor/three.module.js?v=adf6c2e57a2a91cf";
 import {
   ROOMS,
   cafeOffset,
@@ -23,7 +23,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=a8268884754de4a5";
+} from "./model.js?v=adf6c2e57a2a91cf";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -885,7 +885,7 @@ export class HotelView {
         );
       }
       this.sign(
-        "GARDEN WING",
+        this.game.state.floor === 1 ? "SKY WING" : "GARDEN WING",
         4,
         0.6,
         0,
@@ -905,7 +905,9 @@ export class HotelView {
         this.box(4.9, 0.15, 0.12, 0xe9d1a1, x, 0.66, -20.1, ext);
       }
       this.sign(
-        "GARDEN WING · TWO NEW ROOMS",
+        this.game.state.floor === 1
+          ? "SKY WING · TWO NEW ROOMS"
+          : "GARDEN WING · TWO NEW ROOMS",
         10,
         1.1,
         0,
@@ -1034,7 +1036,7 @@ export class HotelView {
       for (const x of [-3.4, 3.4])
         this.box(0.25, 1.3, 0.35, 0xd2ba8e, x, 0.8, -22.35, p);
       this.sign(
-        "NORTH ROOMS",
+        s.floor === 1 ? "HORIZON WING" : "NORTH ROOMS",
         3,
         0.5,
         0,
@@ -1047,23 +1049,25 @@ export class HotelView {
       ).rotation.x = -Math.PI / 2;
       this.plant(-11.3, -29.3, 1.2, p);
       this.plant(11.3, -29.3, 1.2, p);
-      this.round(8, 0.025, 1.8, 0xb5c8ae, 7.1, 0.2, -21, p, 0.1);
-      if (!s.gym) {
-        for (const z of [-22, -20])
-          this.box(0.2, 1.1, 0.2, 0xb89360, 11.8, 0.65, z, p);
-        this.box(0.15, 0.2, 2.1, 0xe9d1a1, 11.8, 1, -21, p);
-        this.sign(
-          "GYM →",
-          2.2,
-          0.55,
-          9.8,
-          0.24,
-          -20.5,
-          p,
-          "#b5c8ae",
-          "#426455",
-          54,
-        ).rotation.x = -Math.PI / 2;
+      if (!s.floor) {
+        this.round(8, 0.025, 1.8, 0xb5c8ae, 7.1, 0.2, -21, p, 0.1);
+        if (!s.gym) {
+          for (const z of [-22, -20])
+            this.box(0.2, 1.1, 0.2, 0xb89360, 11.8, 0.65, z, p);
+          this.box(0.15, 0.2, 2.1, 0xe9d1a1, 11.8, 1, -21, p);
+          this.sign(
+            "GYM →",
+            2.2,
+            0.55,
+            9.8,
+            0.24,
+            -20.5,
+            p,
+            "#b5c8ae",
+            "#426455",
+            54,
+          ).rotation.x = -Math.PI / 2;
+        }
       }
     }
     if (s.gym) {

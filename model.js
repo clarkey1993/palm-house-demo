@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=a8268884754de4a5";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=a8268884754de4a5";
-import { ECONOMY } from "./economy.js?v=a8268884754de4a5";
-import { demoPadAllowed } from "./opening.js?v=a8268884754de4a5";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=adf6c2e57a2a91cf";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=adf6c2e57a2a91cf";
+import { ECONOMY } from "./economy.js?v=adf6c2e57a2a91cf";
+import { demoPadAllowed } from "./opening.js?v=adf6c2e57a2a91cf";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -32,6 +32,8 @@ export const unlocked = (s, i) => {
   if (i >= 29 && i <= 32) return false;
   if (i === 33) return !s.floor && s.expanded;
   if (i === 34 || i === 35) return !s.floor && s.restaurant;
+  if (s.floor === 1 && i === 19) return s.expanded;
+  if (s.floor === 1 && (i === 20 || i === 21)) return s.wing;
   if (s.floor === 1 && (i === 13 || i === 14)) return s.expanded;
   if (s.floor === 1)
     return [0, 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 27].includes(i);
@@ -75,6 +77,12 @@ export const wageRate = (s) =>
 export const onDuty = (s) => s.wagesDue === 0;
 export const LOBBY_UPGRADES = { 25: "barMenu", 26: "bakery", 27: "minibar" };
 export const price = (s, i) => {
+  if (s.floor === 1 && i === 19) return ECONOMY.upperWing;
+  const upperRoom = roomForPad(i);
+  if (s.floor === 1 && upperRoom >= 0)
+    return s.levels[upperRoom]
+      ? ECONOMY.upperUpgrade[upperRoom]
+      : ECONOMY.upperBuild[upperRoom];
   if (Object.hasOwn(ECONOMY.fixed, i)) return ECONOMY.fixed[i];
   if (i === 35) return ECONOMY.kitchen[s.kitchen ? 1 : 0];
   if (i === 27 && s.floor === 1) return ECONOMY.upperMinibar[s.minibar] ?? 1600;
@@ -91,8 +99,6 @@ export const price = (s, i) => {
       : ECONOMY.northBuild[i - 20];
   if (i === 18) return ECONOMY.carts[s.floor === 1 ? 1 : 0];
   const r = roomForPad(i);
-  if (r >= 0 && s.floor === 1)
-    return s.levels[r] ? ECONOMY.upperUpgrade[r] : ECONOMY.upperBuild[r];
   if (r >= 0)
     return s.levels[r] === 0 ? ECONOMY.roomBuild[r] : ECONOMY.roomUpgrade[r];
   if (ROLE_BY_PAD[i]) {
@@ -152,7 +158,7 @@ export const label = (s, i) => {
   if (i === 33) return "Restaurant terrace";
   if (i === 34) return "Three more tables";
   if (i === 35) return "Upgrade kitchen " + (s.kitchen + 1) + "/2";
-  if (i === 19) return "North bedroom wing";
+  if (i === 19) return s.floor === 1 ? "Horizon wing" : "North bedroom wing";
   if (i === 20 || i === 21)
     return s.levels[roomForPad(i)] ? "Upgrade suite" : "Unlock room";
   if (i === 22) return "Open restaurant";
@@ -175,7 +181,7 @@ export const label = (s, i) => {
     );
   const r = roomForPad(i);
   if (r >= 0) return s.levels[r] ? "Upgrade suite" : "Build room";
-  if (i === 10) return "Garden wing";
+  if (i === 10) return s.floor === 1 ? "Sky wing" : "Garden wing";
   if (i === 11) return "Train team " + (s.training + 1) + "/3";
   if (i === 12) return "Comfy shoes " + (s.shoes + 1) + "/3";
   return [
@@ -188,6 +194,10 @@ export const label = (s, i) => {
   ][i - 4];
 };
 export const benefit = (s, i) => {
+  if (s.floor === 1 && i === 19)
+    return "Unlock two more room projects · upstairs capacity grows to eight";
+  if (s.floor === 1 && roomForPad(i) >= 0)
+    return "Upstairs stays earn $110 · upgraded doubles earn $180";
   if (i === 4) return "Guests buy drinks for $20 · collect tips beside the bar";
   if (i === 5)
     return "Check-in takes 0.65 seconds instead of 1.3 · no extra wages";
@@ -247,8 +257,6 @@ export const benefit = (s, i) => {
       17: "Guests relax here and leave $45 · more patience too",
       18: "Cash runners walk 50% faster",
     }[i];
-  if (s.floor === 1 && roomForPad(i) >= 0)
-    return "Upstairs stays earn $110 · premium suites earn $180";
   if (i === 10) return "Add two furnished rooms · capacity grows to six";
   if (i === 11)
     return "Team work and walking speed: +" + (s.training + 1) * 25 + "%";
@@ -335,7 +343,7 @@ export function createGame(saved) {
     s.wingType = ["rooms", "restaurant"].includes(saved.wingType)
       ? saved.wingType
       : null;
-    s.wing = !!saved.wing && !s.floor && s.expanded;
+    s.wing = !!saved.wing && s.floor !== 2 && s.expanded;
     s.restaurantPlot =
       !s.floor &&
       (!!saved.restaurantPlot || (s.wing && s.wingType === "restaurant"));
@@ -1468,9 +1476,10 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
       } else if (i === 10) {
         s.expanded = true;
         for (const guest of g.guests) {
-          if (guest.phase === "toCafe") {
+          if (["toCafe", "toSkyLounge"].includes(guest.phase)) {
             for (const point of guest.route) point.z -= 7.5;
-          } else if (guest.phase === "cafe") guest.z -= 7.5;
+          } else if (["cafe", "skyLounge"].includes(guest.phase))
+            guest.z -= 7.5;
         }
         s.levels[4] = Math.max(1, s.levels[4]);
         s.levels[5] = Math.max(1, s.levels[5]);
@@ -1479,9 +1488,9 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
       else if (i === 19) {
         s.wing = true;
         for (const guest of g.guests) {
-          if (guest.phase === "toCafe")
+          if (["toCafe", "toSkyLounge"].includes(guest.phase))
             for (const point of guest.route) point.z -= 10;
-          else if (guest.phase === "cafe") guest.z -= 10;
+          else if (["cafe", "skyLounge"].includes(guest.phase)) guest.z -= 10;
         }
       } else if (i === 22) s.restaurant = true;
       else if (i === 23) s.servers++;
