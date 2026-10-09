@@ -3,6 +3,6 @@ export const BUILD = Object.freeze({
   "namespace": "palm-house-playtest",
   "openingDemo": false,
   "logging": true,
-  "version": "0.5.3",
+  "version": "0.5.4",
   "purchaseMode": "unavailable"
 });

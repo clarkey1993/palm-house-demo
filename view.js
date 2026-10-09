@@ -1,8 +1,8 @@
-import { coverFloor, placeArchitecture } from "./architecture.js";
-import { furniture } from "./furniture.js";
-import { stepMotion, motionPose } from "./animation.js";
-import { DECOR } from "./decor.js";
-import * as T from "./vendor/three.module.js";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=94f9b88e35285f1e";
+import { furniture } from "./furniture.js?v=94f9b88e35285f1e";
+import { stepMotion, motionPose } from "./animation.js?v=94f9b88e35285f1e";
+import { DECOR } from "./decor.js?v=94f9b88e35285f1e";
+import * as T from "./vendor/three.module.js?v=94f9b88e35285f1e";
 import {
   ROOMS,
   cafeOffset,
@@ -23,7 +23,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js";
+} from "./model.js?v=94f9b88e35285f1e";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,

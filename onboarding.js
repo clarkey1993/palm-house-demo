@@ -6,8 +6,8 @@ import {
   price,
   onDuty,
   distance,
-} from "./model.js";
-import { nextOpeningStep } from "./opening.js";
+} from "./model.js?v=94f9b88e35285f1e";
+import { nextOpeningStep } from "./opening.js?v=94f9b88e35285f1e";
 
 // One recommendation feeds both the written instruction and the map guide.
 // Never changes the player position or spends money.
