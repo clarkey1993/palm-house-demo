@@ -1553,3 +1553,32 @@ input:focus-visible {
   margin: 5px 0;
   min-height: 44px;
 }
+
+.feedback-section {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #c9d8c6;
+}
+.feedback-section label {
+  display: block;
+  font-weight: 700;
+  margin: 12px 0 8px;
+}
+.feedback-section textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 130px;
+  resize: vertical;
+  padding: 12px;
+  border: 1px solid #8ea999;
+  border-radius: 12px;
+  background: #fffbed;
+  color: #285b54;
+  font: 16px/1.5 inherit;
+  font-family: inherit;
+  font-size: 16px;
+}
+.feedback-section textarea:focus-visible {
+  outline: 3px solid #427e70;
+  outline-offset: 2px;
+}

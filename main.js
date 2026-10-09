@@ -1,3 +1,4 @@
+import { mountFeedback } from "./feedback.js";
 import { preloadFurniture } from "./furniture.js";
 import {
   RESTORATION,
@@ -259,6 +260,7 @@ function downloadJSON(value, filename) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+mountFeedback($("#book-settings"), BUILD.version);
 $("#playtest-settings").hidden = !BUILD.logging;
 if (BUILD.openingDemo) {
   $(".wing-plans").hidden = true;
