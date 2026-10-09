@@ -1,7 +1,7 @@
-import * as T from "./vendor/three.module.js?v=adf6c2e57a2a91cf";
-import { mergeGeometries } from "./vendor/BufferGeometryUtils.js?v=adf6c2e57a2a91cf";
-import { furniture } from "./furniture.js?v=adf6c2e57a2a91cf";
-import { DECOR } from "./decor.js?v=adf6c2e57a2a91cf";
+import * as T from "./vendor/three.module.js?v=13b0fb40d9189ad2";
+import { mergeGeometries } from "./vendor/BufferGeometryUtils.js?v=13b0fb40d9189ad2";
+import { furniture } from "./furniture.js?v=13b0fb40d9189ad2";
+import { DECOR } from "./decor.js?v=13b0fb40d9189ad2";
 export const ARCHITECTURE = [
   "lobby-limestone",
   "lobby-runner",

@@ -1,8 +1,8 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=adf6c2e57a2a91cf";
-import { furniture } from "./furniture.js?v=adf6c2e57a2a91cf";
-import { stepMotion, motionPose } from "./animation.js?v=adf6c2e57a2a91cf";
-import { DECOR } from "./decor.js?v=adf6c2e57a2a91cf";
-import * as T from "./vendor/three.module.js?v=adf6c2e57a2a91cf";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=13b0fb40d9189ad2";
+import { furniture } from "./furniture.js?v=13b0fb40d9189ad2";
+import { stepMotion, motionPose } from "./animation.js?v=13b0fb40d9189ad2";
+import { DECOR } from "./decor.js?v=13b0fb40d9189ad2";
+import * as T from "./vendor/three.module.js?v=13b0fb40d9189ad2";
 import {
   ROOMS,
   cafeOffset,
@@ -23,7 +23,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=adf6c2e57a2a91cf";
+} from "./model.js?v=13b0fb40d9189ad2";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -975,11 +975,11 @@ export class HotelView {
       this.extension.visible = this.game.state.expanded;
       this.sign(
         "FLOOR 2 · THE SKY SUITES",
-        6,
+        4.8,
         0.65,
         0,
         0.3,
-        -10.6,
+        1.6,
         p,
         "#e5d4b5",
         "#695c80",
