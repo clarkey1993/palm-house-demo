@@ -25,6 +25,7 @@ import {
   update,
   serialize,
   PADS,
+  padPosition,
   ROOMS,
   CLEAN_SPOTS,
   roomCount,
@@ -1333,7 +1334,7 @@ function hud() {
     head = "THE SKY SUITES";
     icon = "★";
   } else if (s.cash >= 100) {
-    const next = [...PADS]
+    const next = PADS.map((p) => padPosition(s, p))
       .sort(
         (a, b) => price(s, a.i) - s.paid[a.i] - (price(s, b.i) - s.paid[b.i]),
       )
@@ -1413,6 +1414,26 @@ function hud() {
       head = "YOUR NEXT LITTLE STEP";
     }
   }
+  const nearbyUpgrade = PADS.map((p) => padPosition(s, p))
+    .filter(
+      (p) =>
+        unlocked(s, p.i) && !complete(s, p.i) && distance(p, game.player) < 2.8,
+    )
+    .sort((a, b) => distance(a, game.player) - distance(b, game.player))[0];
+  const inspectingUpgrade =
+    nearbyUpgrade && game.cleanRoom < 0 && game.purchaseLatch < 0;
+  if (inspectingUpgrade) {
+    const i = nearbyUpgrade.i,
+      remaining = Math.ceil(price(s, i) - s.paid[i]);
+    title = label(s, i) + " · $" + remaining.toLocaleString();
+    detail = benefit(s, i) || "Stand on this pad to build.";
+    head = game.active === i ? "STAND STILL TO INVEST" : "NEARBY UPGRADE";
+    progress = (s.paid[i] / price(s, i)) * 100;
+    icon = "↑";
+  }
+  document
+    .querySelector(".objective")
+    .classList.toggle("upgrade-inspect", !!inspectingUpgrade);
   $("#hint").textContent = title;
   $("#detail").textContent = detail;
   $("#objective-label").textContent = head;

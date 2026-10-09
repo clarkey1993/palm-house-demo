@@ -4,10 +4,12 @@ import { ECONOMY } from "./economy.js";
 import { demoPadAllowed } from "./opening.js";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
-  x: r.x - Math.sign(r.x) * 2.5,
+  x: r.x - Math.sign(r.x) * 2.65,
   z: r.z + 1.3,
 }));
 export const cafeOffset = (s) => (s.wing ? -17.5 : s.expanded ? -7.5 : 0);
+export const padPosition = (s, pad) =>
+  pad.i === 26 ? { ...pad, z: pad.z + cafeOffset(s) } : pad;
 export const facilityPosition = (s, source) => ({
   ...FACILITIES[source],
   z: FACILITIES[source].z + (source === "cafe" ? cafeOffset(s) : 0),
@@ -186,6 +188,11 @@ export const label = (s, i) => {
   ][i - 4];
 };
 export const benefit = (s, i) => {
+  if (i === 4) return "Guests buy drinks for $20 · collect tips beside the bar";
+  if (i === 5)
+    return "Check-in takes 0.65 seconds instead of 1.3 · no extra wages";
+  if (i === 7)
+    return "Guests buy breakfast for $15 · collect tips beside the counter";
   if (i === 36) return "Guest workouts earn $40 · three exercise spaces";
   if (i === 37) return "Six spaces · $65 per workout";
   if (i === 28)
@@ -758,7 +765,7 @@ function housekeeping(g, dt) {
     (dirty, i) =>
       dirty &&
       p.present !== false &&
-      distance(p, CLEAN_SPOTS[i]) < 1.05 &&
+      distance(p, CLEAN_SPOTS[i]) < 0.85 &&
       !p.moving,
   );
   if (g.cleanRoom >= 0) {
@@ -1395,11 +1402,14 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
     g.purchaseLatch >= 0 &&
     distance(
       p,
-      PADS.find((a) => a.i === g.purchaseLatch),
+      padPosition(
+        s,
+        PADS.find((a) => a.i === g.purchaseLatch),
+      ),
     ) > 1.4
   )
     g.purchaseLatch = -1;
-  const pad = PADS.find(
+  const pad = PADS.map((a) => padPosition(s, a)).find(
     (a) =>
       p.present !== false &&
       a.i !== g.purchaseLatch &&

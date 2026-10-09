@@ -1582,3 +1582,19 @@ input:focus-visible {
   outline: 3px solid #427e70;
   outline-offset: 2px;
 }
+
+/* Fixed inspection panel: readable details without covering the world marker. */
+.objective.upgrade-inspect {
+  background: #244e43;
+  color: #fff5d9;
+  border-color: #9ac4a1;
+}
+.objective.upgrade-inspect strong,
+.objective.upgrade-inspect small,
+.objective.upgrade-inspect span:not(#objective-icon) {
+  color: #fff5d9;
+}
+.objective.upgrade-inspect #detail {
+  font-size: 15px;
+  line-height: 1.45;
+}

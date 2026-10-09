@@ -1,5 +1,6 @@
 import {
   PADS,
+  padPosition,
   CLEAN_SPOTS,
   RECEPTION,
   price,
@@ -86,7 +87,10 @@ export function openingTask(h) {
               : pad === 6
                 ? "They welcome guests · $45/min wages."
                 : "Guests leave cash after a drink."),
-        destination: PADS.find((p) => p.i === pad),
+        destination: padPosition(
+          s,
+          PADS.find((p) => p.i === pad),
+        ),
         guide:
           pad < 4
             ? "Room " + (pad + 1)

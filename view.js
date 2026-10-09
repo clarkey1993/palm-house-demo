@@ -17,6 +17,7 @@ import {
   nextWage,
   workRate,
   PADS,
+  padPosition,
   RECEPTION,
   price,
   complete,
@@ -204,13 +205,30 @@ export class HotelView {
       }
       const spot = CLEAN_SPOTS[i],
         ring = this.mesh(
-          new T.RingGeometry(0.7, 0.82, 40),
+          new T.RingGeometry(0.72, 0.85, 40),
           0xd9a168,
           spot.x,
-          0.24,
+          0.32,
           spot.z,
         );
       ring.rotation.x = -Math.PI / 2;
+      ring.material = new T.MeshBasicMaterial({ color: 0xd99948 });
+      const marker = this.sign(
+        "CLEAN",
+        1.15,
+        0.36,
+        spot.x,
+        0.325,
+        spot.z,
+        this.scene,
+        "#f1d7a1",
+        "#654b24",
+        58,
+      );
+      marker.rotation.x = -Math.PI / 2;
+      ring.add(marker);
+      marker.position.set(0, 0, 0.005);
+      marker.rotation.set(0, 0, 0);
       return { group, ring };
     });
     this.rebuild();
@@ -647,19 +665,6 @@ export class HotelView {
     this.cyl(0.18, 0.28, 0.6, 0xab8359, 7.8, 0.43, 10.5);
     this.cyl(0.16, 0.16, 0.17, 0xffffff, 7.6, 0.9, 10.5);
     this.plant(10.9, 10.4, 1.35);
-    this.sign(
-      "WELCOME\nSTAY A LITTLE",
-      2.3,
-      1.25,
-      -8,
-      0.83,
-      14.2,
-      this.scene,
-      "#eee1bd",
-      "#608675",
-      37,
-    );
-    this.box(2.4, 1.5, 0.1, 0xb59062, -8, 0.8, 14.1);
     for (const [x, z, s] of [
       [-14, 11, 1.2],
       [14, 13, 1.3],
@@ -706,7 +711,7 @@ export class HotelView {
       new T.RingGeometry(0.85, 1.03, 48),
       0x75d6a2,
       0,
-      0.21,
+      0.33,
       5.8,
     );
     this.serviceRing.rotation.x = -Math.PI / 2;
@@ -724,49 +729,94 @@ export class HotelView {
       7.4,
     );
     this.cashRing.rotation.x = -Math.PI / 2;
-    for (const pad of PADS) {
-      const g = new T.Group();
-      g.position.set(pad.x, 0.22, pad.z);
-      this.scene.add(g);
-      const base = this.round(1.75, 0.04, 1.75, 0xf5d884, 0, 0, 0, g, 0.3);
-      const glow = this.round(2.15, 0.015, 2.15, 0xffdc7a, 0, -0.02, 0, g, 0.4);
-      glow.material = new T.MeshBasicMaterial({
-        color: 0xffdc7a,
-        transparent: true,
-        opacity: 0.18,
-        depthWrite: false,
-      });
-      glow.castShadow = false;
-      for (const x of [-0.77, 0.77])
-        for (const z of [-0.77, 0.77]) {
-          this.box(
-            0.4,
-            0.035,
-            0.07,
-            0xfff9de,
-            x - Math.sign(x) * 0.13,
-            0.03,
-            z,
-            g,
-          );
-          this.box(
-            0.07,
-            0.035,
-            0.4,
-            0xfff9de,
-            x,
-            0.03,
-            z - Math.sign(z) * 0.13,
-            g,
-          );
-        }
-      const el = document.createElement("div");
-      el.className = "pad-label";
-      el.innerHTML = '<small></small><b></b><div class="bar"></div>';
-      document.querySelector("#labels").append(el);
-      this.labels.push({ pad, el, g, base, glow });
-    }
+    for (const pad of PADS) this.makePurchasePad(pad, 0.3);
   }
+  makePurchasePad(pad, y) {
+    const g = new T.Group();
+    g.position.set(pad.x, y, pad.z);
+    this.scene.add(g);
+    const glow = this.round(2.12, 0.012, 2.12, 0xffdc7a, 0, -0.01, 0, g, 0.25);
+    glow.material = new T.MeshBasicMaterial({
+      color: 0xffdc7a,
+      transparent: true,
+      opacity: 0.22,
+      depthWrite: false,
+    });
+    glow.castShadow = false;
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 512;
+    const texture = new T.CanvasTexture(canvas);
+    texture.colorSpace = T.SRGBColorSpace;
+    texture.anisotropy = Math.min(
+      8,
+      this.renderer.capabilities.getMaxAnisotropy(),
+    );
+    const material = new T.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+    });
+    const surface = new T.Mesh(new T.PlaneGeometry(1.9, 1.9), material);
+    surface.rotation.x = -Math.PI / 2;
+    surface.position.y = 0.025;
+    g.add(surface);
+    this.labels.push({ pad, g, glow, canvas, texture, key: "" });
+  }
+  drawPurchasePad(entry, title, amount, progress, detail, active) {
+    const key = [title, amount, Math.round(progress * 20), detail, active].join(
+      "|",
+    );
+    if (key === entry.key) return;
+    entry.key = key;
+    const c = entry.canvas.getContext("2d");
+    c.clearRect(0, 0, 512, 512);
+    c.fillStyle = active ? "#376e59" : "#d9bd70";
+    c.beginPath();
+    c.roundRect(8, 8, 496, 496, 54);
+    c.fill();
+    c.strokeStyle = active ? "#effbdc" : "#fff2bf";
+    c.lineWidth = 9;
+    c.beginPath();
+    c.roundRect(20, 20, 472, 472, 44);
+    c.stroke();
+    c.textAlign = "center";
+    c.fillStyle = active ? "#fff8dd" : "#254e43";
+    c.font = "bold 56px sans-serif";
+    const words = title.toUpperCase().split(" ");
+    const lines = [];
+    let line = "";
+    for (const word of words) {
+      const next = line ? line + " " + word : word;
+      if (c.measureText(next).width > 434 && line) {
+        lines.push(line);
+        line = word;
+      } else line = next;
+    }
+    if (line) lines.push(line);
+    lines.slice(0, 3).forEach((t, i) => c.fillText(t, 256, 82 + i * 61));
+    c.font = "bold 98px sans-serif";
+    c.fillText(amount, 256, 316);
+    c.font = "bold 35px sans-serif";
+    const phrase = detail.split(" · ")[0];
+    const words2 = phrase.split(" ");
+    const lines2 = [];
+    let line2 = "";
+    for (const word of words2) {
+      const next = line2 ? line2 + " " + word : word;
+      if (c.measureText(next).width > 430 && line2) {
+        lines2.push(line2);
+        line2 = word;
+      } else line2 = next;
+    }
+    if (line2) lines2.push(line2);
+    lines2.slice(0, 2).forEach((t, i) => c.fillText(t, 256, 370 + i * 41));
+    c.fillStyle = "#fff0bd";
+    c.fillRect(52, 442, 408, 14);
+    c.fillStyle = "#579371";
+    c.fillRect(52, 442, 408 * Math.min(1, progress), 14);
+    entry.texture.needsUpdate = true;
+  }
+
   disposeGroup(group) {
     const removed = new Set();
     group.traverse((o) => {
@@ -1529,14 +1579,17 @@ export class HotelView {
       leaf.scale.set(1, 0.45, 0.12);
       leaf.rotation.z = k * 0.6;
     }
-    this.plant(2.85, 2.5, 0.9, g);
-    if (!this.addFurniture("seaside-armchair", g, -2.6, 0.2, 2.3, lv, theme)) {
+    this.plant(Math.sign(r.x) * 2.85, -2.6, 0.8, g);
+    const chairX = Math.sign(r.x) * 2.6;
+    if (
+      !this.addFurniture("seaside-armchair", g, chairX, 0.2, 2.3, lv, theme)
+    ) {
       this.round(
         1.1,
         0.22,
         1.1,
         lv === 2 ? 0xd8a676 : 0x9aaf83,
-        -2.6,
+        chairX,
         0.6,
         2.3,
         g,
@@ -1547,7 +1600,7 @@ export class HotelView {
         0.55,
         0.3,
         lv === 2 ? 0xd8a676 : 0x9aaf83,
-        -2.6,
+        chairX,
         0.88,
         1.85,
         g,
@@ -1999,7 +2052,7 @@ export class HotelView {
     this.roomMess.forEach((a, i) => {
       a.group.visible = s.dirty[i];
       a.ring.visible = s.dirty[i];
-      a.ring.scale.setScalar(1 + Math.sin(g.time * 3) * 0.035);
+      a.ring.material.color.setHex(g.cleanRoom === i ? 0x64b988 : 0xd99948);
     });
     if (this.player.userData.arrow)
       this.player.userData.arrow.position.y = 2.35 + Math.sin(g.time * 3) * 0.1;
@@ -2159,119 +2212,30 @@ export class HotelView {
     this.serviceRing.material.color.set(g.service > 0 ? 0xc5f79b : 0x7cddb0);
 
     let playerOverlapsCard = false;
-    const playerHead = this.project(g.player.x, 2.5, g.player.z);
-    const playerFeet = this.project(g.player.x, 0, g.player.z);
-    // Keep floor pads visible, but only reveal nearby purchase cards on phones.
     const compact = this.width <= 600;
-    const nearbyPads = new Set(
-      this.labels
-        .filter(({ pad }) => unlocked(s, pad.i) && !complete(s, pad.i))
-        .map(({ pad }) => ({
-          i: pad.i,
-          distance: Math.hypot(pad.x - g.player.x, pad.z - g.player.z),
-        }))
-        .filter((p) => p.distance < (compact ? 5 : 8) || p.i === g.active)
-        .sort((a, b) =>
-          a.i === g.active
-            ? -1
-            : b.i === g.active
-              ? 1
-              : a.distance - b.distance,
-        )
-        .slice(0, compact ? 1 : 3)
-        .map((p) => p.i),
-    );
-    for (const { pad, el, g: group, glow } of this.labels) {
+    for (const entry of this.labels) {
+      const { g: group, glow } = entry;
+      const pad = padPosition(s, entry.pad);
+      group.position.x = pad.x;
+      group.position.z = pad.z;
       const visible = unlocked(s, pad.i) && !complete(s, pad.i);
       group.visible = visible;
-      glow.material.opacity =
-        s.openingDemo && g.openingGuide?.pad === pad.i
-          ? 0.3 + Math.sin(g.time * 2) * 0.07
-          : 0.15 + Math.sin(g.time * 1.8 + pad.i * 0.5) * 0.045;
-      const point = this.project(pad.x, 0.35, pad.z);
-      if (pad.i === 7 || pad.i === 9) point.y -= 24;
-      if (pad.i === 10) {
-        point.x -= 34;
-        point.y -= 22;
-      }
-      el.style.display =
-        visible &&
-        nearbyPads.has(pad.i) &&
-        point.visible &&
-        point.y > (compact ? 135 : 145) &&
-        point.y < this.height - 120
-          ? "block"
-          : "none";
-      el.style.left = point.x + "px";
-      el.style.top = point.y + "px";
-      el.querySelector("small").textContent = label(s, pad.i);
-      let caption = el.querySelector(".pad-caption");
-      if (!caption) {
-        caption = document.createElement("span");
-        caption.className = "pad-caption";
-        el.append(caption);
-      }
-      caption.textContent =
-        pad.i >= 28
-          ? benefit(s, pad.i)
-          : pad.i >= 25
-            ? {
-                25: "Up to $65 per drink",
-                26: "Up to $60 per breakfast",
-                27: "Up to $45 per checkout",
-              }[pad.i]
-            : pad.i >= 19
-              ? {
-                  19: "Two rooms farther north",
-                  20: "Room income $55–80",
-                  21: "Room income $55–80",
-                  22: "Dinner income $45/guest",
-                  23: "$" + (90 + s.servers * 30) + "/min wages",
-                  24: "Two staffed check-in desks",
-                }[pad.i]
-              : pad.i >= 15
-                ? {
-                    15: "4 rooms to develop",
-                    16: "+50% cleaning speed",
-                    17: "$45 per lounge visit",
-                    18: "+50% cash runner speed",
-                  }[pad.i]
-                : ROLE_BY_PAD[pad.i]
-                  ? "$" + nextWage(s, ROLE_BY_PAD[pad.i]) + "/min wages"
-                  : pad.i === 10
-                    ? "+2 furnished rooms"
-                    : pad.i === 11
-                      ? "+" + (s.training + 1) * 25 + "% team speed"
-                      : pad.i === 12
-                        ? "+" + (s.shoes + 1) * 20 + "% walking"
-                        : "";
-      el.querySelector("b").textContent =
-        "$" + Math.ceil(price(s, pad.i) - s.paid[pad.i]);
-      el.querySelector(".bar").style.width =
-        (s.paid[pad.i] / price(s, pad.i)) * 90 + "%";
-      if (s.openingDemo && pad.i === 10) {
-        el.querySelector("small").textContent = "BEYOND THE LOBBY";
-        el.querySelector("b").textContent = "Preview";
-        caption.textContent = "Keep your construction cash";
-        el.querySelector(".bar").style.width = "0%";
-      }
-      // The card stays fixed; draw the manager above it when they overlap.
-      const halfWidth = el.offsetWidth * 0.54;
-      const labelHeight = el.offsetHeight * 1.08;
-      if (
-        visible &&
-        playerHead.visible &&
-        point.x + halfWidth > playerHead.x - 28 &&
-        point.x - halfWidth < playerHead.x + 28 &&
-        point.y > playerHead.y - 18 &&
-        point.y - labelHeight < playerFeet.y + 12
-      ) {
-        playerOverlapsCard = el.style.display !== "none" || playerOverlapsCard;
-      }
-      el.classList.toggle("active", g.active === pad.i);
-      el.classList.toggle(
-        "affordable",
-        s.cash >= price(s, pad.i) - s.paid[pad.i],
+      if (!visible) continue;
+      const active = g.active === pad.i;
+      glow.material.opacity = this.reducedMotion
+        ? 0.22
+        : (active ? 0.32 : 0.2) + Math.sin(g.time * 2 + pad.i * 0.3) * 0.07;
+      const preview = s.openingDemo && pad.i === 10;
+      const detail = ROLE_BY_PAD[pad.i]
+        ? "$" + nextWage(s, ROLE_BY_PAD[pad.i]) + "/min wages"
+        : benefit(s, pad.i) || "";
+      this.drawPurchasePad(
+        entry,
+        preview ? "Beyond the lobby" : label(s, pad.i),
+        preview ? "Preview" : "$" + Math.ceil(price(s, pad.i) - s.paid[pad.i]),
+        preview ? 0 : s.paid[pad.i] / price(s, pad.i),
+        detail,
+        active,
       );
     }
     for (const e of this.effects) {
@@ -2340,7 +2304,7 @@ export class HotelView {
       destination = g.piles[0];
       guideText = "Collect cash";
     } else if (s.cash >= 100) {
-      const next = [...PADS]
+      const next = PADS.map((p) => padPosition(s, p))
         .sort(
           (a, b) => price(s, a.i) - s.paid[a.i] - (price(s, b.i) - s.paid[b.i]),
         )

@@ -145,25 +145,10 @@ export class RooftopView extends HotelView {
       0,
       0,
     );
-    for (const pad of PADS.filter((p) => p.i >= 29 && p.i <= 32)) {
-      const g = new T.Group();
-      g.position.set(pad.x, 0.34, pad.z);
-      this.scene.add(g);
-      const base = this.round(1.75, 0.05, 1.75, 0xf3d792, 0, 0, 0, g, 0.25);
-      const glow = this.round(2.05, 0.01, 2.05, 0xffdc7a, 0, -0.01, 0, g, 0.3);
-      glow.material = new T.MeshBasicMaterial({
-        color: 0xffdc7a,
-        transparent: true,
-        opacity: 0.2,
-        depthWrite: false,
-      });
-      const el = document.createElement("div");
-      el.className = "pad-label";
-      el.innerHTML = '<small></small><b></b><div class="bar"></div>';
-      document.querySelector("#labels").append(el);
-      this.labels.push({ pad, g, base, glow, el });
-    }
+    for (const pad of PADS.filter((p) => p.i >= 29 && p.i <= 32))
+      this.makePurchasePad(pad, 0.4);
   }
+
   rebuild() {
     if (this.facilities) this.disposeGroup(this.facilities);
     const p = (this.facilities = new T.Group());
