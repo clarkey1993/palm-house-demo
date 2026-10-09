@@ -221,21 +221,19 @@ export class HotelView {
       name,
       this.materials,
       (material) => {
-        if (material.name === "Sea glass runner") {
-          const original = level === 2 ? 0xe2bc6e : theme;
-          material.userData.decor = { role: "linen", original };
-          const palette = (DECOR.find((d) => d.id === this.decor) || DECOR[0])
-            .colors;
-          material.color.setHex(palette.linen ?? original);
+        if (
+          material.name.startsWith("Sea glass runner") ||
+          material.name.startsWith("Sea glass upholstery")
+        ) {
+          material.color.setHex(theme);
         }
-        if (material.name === "Sea glass upholstery")
-          material.color.setHex(level === 2 ? 0xc19a55 : theme);
       },
       `${level}:${theme}`,
     );
     if (!model) return false;
     model.position.set(x, y, z);
-    if (name === "boutique-bed") model.scale.set(1, 0.76, 0.9);
+    if (name === "boutique-bed" || name === "standard-single-bed")
+      model.scale.set(1, 0.76, 0.9);
     parent.add(model);
     return model;
   }
@@ -379,6 +377,19 @@ export class HotelView {
     return m;
   }
   plant(x, z, size = 1, parent = this.scene) {
+    const model = this.addFurniture(
+      "coastal-planter",
+      parent,
+      x,
+      0,
+      z,
+      1,
+      0x6ca777,
+    );
+    if (model) {
+      model.scale.setScalar(size);
+      return model;
+    }
     const g = new T.Group();
     g.position.set(x, 0, z);
     g.scale.setScalar(size);
@@ -1016,12 +1027,14 @@ export class HotelView {
         const x = 20 + (i % 3) * 4,
           z = -19 - Math.floor(i / 3) * 5;
         this.round(3.3, 0.04, 4, 0xb5c8ae, x, 0.2, z, p, 0.25);
-        this.round(1.7, 0.25, 2.7, 0x55786e, x, 0.4, z, p, 0.15);
-        this.round(1.3, 0.04, 2.3, 0x344b48, x, 0.55, z, p, 0.08);
-        for (const side of [-0.7, 0.7])
-          this.box(0.09, 1.1, 0.09, 0xc8d7c6, x + side, 1, z - 0.9, p);
-        this.box(1.5, 0.35, 0.25, 0x436658, x, 1.5, z - 0.9, p);
-        this.box(0.6, 0.18, 0.03, 0xa8d4c7, x, 1.53, z - 0.75, p);
+        if (!this.addFurniture("treadmill", p, x, 0.2, z)) {
+          this.round(1.7, 0.25, 2.7, 0x55786e, x, 0.4, z, p, 0.15);
+          this.round(1.3, 0.04, 2.3, 0x344b48, x, 0.55, z, p, 0.08);
+          for (const side of [-0.7, 0.7])
+            this.box(0.09, 1.1, 0.09, 0xc8d7c6, x + side, 1, z - 0.9, p);
+          this.box(1.5, 0.35, 0.25, 0x436658, x, 1.5, z - 0.9, p);
+          this.box(0.6, 0.18, 0.03, 0xa8d4c7, x, 1.53, z - 0.75, p);
+        }
       }
       this.sign(
         "$" + (s.gymUpgrade ? 65 : 40) + " / WORKOUT",
@@ -1060,20 +1073,51 @@ export class HotelView {
       this.plant(28, -11.7, 1.1, dining);
       if (s.restaurant) {
         this.round(6.6, 0.07, 12.5, 0xe3b08d, 24, 0.22, -5, dining, 0.4);
-        this.round(1.3, 1, 5, 0x9f7255, 20, 0.7, -6, dining, 0.16);
-        this.round(1.5, 0.13, 5.2, 0xffe7bc, 20, 1.28, -6, dining, 0.14);
+        const serviceCounter = this.addFurniture(
+          "service-counter",
+          dining,
+          20,
+          0.2,
+          -6,
+        );
+        if (serviceCounter) serviceCounter.rotation.y = Math.PI / 2;
+        else {
+          this.round(1.3, 1, 5, 0x9f7255, 20, 0.7, -6, dining, 0.16);
+          this.round(1.5, 0.13, 5.2, 0xffe7bc, 20, 1.28, -6, dining, 0.14);
+        }
         for (let slot = 0; slot < (s.diningExpansion ? 6 : 3); slot++) {
           const x = 22 + (slot % 3) * 2,
             z = -3 - Math.floor(slot / 3) * 5;
-          this.cyl(0.7, 0.7, 0.13, 0xf6e0b4, x, 0.95, z, dining);
-          this.cyl(0.12, 0.23, 0.7, 0x9c7655, x, 0.55, z, dining);
-          for (const seat of [-1.3, 1.3])
-            this.round(0.8, 0.4, 0.7, 0xa7b18a, x, 0.5, z + seat, dining, 0.12);
-          this.cyl(0.16, 0.16, 0.04, 0xffffff, x, 1.04, z, dining);
+          if (
+            !this.addFurniture("dining-set", dining, x, 0.2, z, 1, 0xa7b18a)
+          ) {
+            this.cyl(0.7, 0.7, 0.13, 0xf6e0b4, x, 0.95, z, dining);
+            this.cyl(0.12, 0.23, 0.7, 0x9c7655, x, 0.55, z, dining);
+            for (const seat of [-1.3, 1.3])
+              this.round(
+                0.8,
+                0.4,
+                0.7,
+                0xa7b18a,
+                x,
+                0.5,
+                z + seat,
+                dining,
+                0.12,
+              );
+            this.cyl(0.16, 0.16, 0.04, 0xffffff, x, 1.04, z, dining);
+          }
         }
         for (let k = 0; k < s.servers; k++) {
           const actor = this.character(4);
           actor.userData.luggage.visible = false;
+          const tray = new T.Group();
+          this.cyl(0.31, 0.31, 0.045, 0xc8ae79, 0, 1.05, 0.43, tray);
+          this.cyl(0.19, 0.19, 0.028, 0xfff5df, 0, 1.085, 0.43, tray);
+          this.sphere(0.09, 0x8da77b, -0.06, 1.12, 0.43, tray);
+          actor.add(tray);
+          actor.userData.servingTray = tray;
+          tray.visible = false;
           p.add(actor);
           actor.position.set(22, 0, -6 + k * 1.2);
           this.serverActors.push(actor);
@@ -1161,24 +1205,28 @@ export class HotelView {
     }
     if (s.pool) {
       this.round(6.3, 0.08, 5.6, 0xe9cda5, -7.9, 0.23, 9.3, p, 0.4);
-      this.round(5.2, 1.05, 1.25, 0x976343, -7.9, 0.78, 10.5, p, 0.18);
-      this.round(5.5, 0.16, 1.5, 0xffedc9, -7.9, 1.38, 10.5, p, 0.16);
-      for (const x of [-9.5, -7.9, -6.3]) {
-        this.cyl(0.12, 0.16, 0.75, 0x6c6550, x, 0.65, 8.8, p);
-        this.cyl(0.38, 0.38, 0.15, 0x729b81, x, 1.06, 8.8, p);
-        this.cyl(0.09, 0.08, 0.25, 0xe8b15c, x, 1.6, 10.05, p);
-      }
-      for (let i = 0; i < 5; i++) {
-        this.cyl(
-          0.075,
-          0.085,
-          0.36,
-          i % 2 ? 0x537f65 : 0xc78651,
-          -9.4 + i * 0.32,
-          1.66,
-          10.8,
-          p,
-        );
+      const lobbyBar = this.addFurniture("bar-counter", p, -7.9, 0.2, 10.5);
+      if (lobbyBar) lobbyBar.rotation.y = Math.PI;
+      else {
+        this.round(5.2, 1.05, 1.25, 0x976343, -7.9, 0.78, 10.5, p, 0.18);
+        this.round(5.5, 0.16, 1.5, 0xffedc9, -7.9, 1.38, 10.5, p, 0.16);
+        for (const x of [-9.5, -7.9, -6.3]) {
+          this.cyl(0.12, 0.16, 0.75, 0x6c6550, x, 0.65, 8.8, p);
+          this.cyl(0.38, 0.38, 0.15, 0x729b81, x, 1.06, 8.8, p);
+          this.cyl(0.09, 0.08, 0.25, 0xe8b15c, x, 1.6, 10.05, p);
+        }
+        for (let i = 0; i < 5; i++) {
+          this.cyl(
+            0.075,
+            0.085,
+            0.36,
+            i % 2 ? 0x537f65 : 0xc78651,
+            -9.4 + i * 0.32,
+            1.66,
+            10.8,
+            p,
+          );
+        }
       }
       this.plant(-10.6, 11.6, 0.9, p);
       this.sign(
@@ -1230,13 +1278,15 @@ export class HotelView {
       const coffee = new T.Group();
       coffee.position.z = cafeOffset(s);
       p.add(coffee);
-      this.round(3.4, 1, 1.4, 0xb98256, 0, 0.72, -11, coffee, 0.18);
-      this.round(3.6, 0.15, 1.6, 0xffe5b0, 0, 1.3, -11, coffee, 0.2);
-      this.round(0.85, 0.65, 0.55, 0x3c6661, -0.85, 1.68, -11, coffee, 0.1);
-      this.cyl(0.22, 0.22, 0.4, 0xd5d8c2, 0.15, 1.57, -11, coffee);
-      for (const x of [0.7, 1.15]) {
-        this.cyl(0.13, 0.13, 0.18, 0xfff9e5, x, 1.48, -10.8, coffee);
-        this.cyl(0.17, 0.17, 0.04, 0xe3ba6d, x, 1.38, -10.8, coffee);
+      if (!this.addFurniture("cafe-counter", coffee, 0, 0.15, -11)) {
+        this.round(3.4, 1, 1.4, 0xb98256, 0, 0.72, -11, coffee, 0.18);
+        this.round(3.6, 0.15, 1.6, 0xffe5b0, 0, 1.3, -11, coffee, 0.2);
+        this.round(0.85, 0.65, 0.55, 0x3c6661, -0.85, 1.68, -11, coffee, 0.1);
+        this.cyl(0.22, 0.22, 0.4, 0xd5d8c2, 0.15, 1.57, -11, coffee);
+        for (const x of [0.7, 1.15]) {
+          this.cyl(0.13, 0.13, 0.18, 0xfff9e5, x, 1.48, -10.8, coffee);
+          this.cyl(0.17, 0.17, 0.04, 0xe3ba6d, x, 1.38, -10.8, coffee);
+        }
       }
       this.sign(
         "SUNRISE COFFEE",
@@ -1402,58 +1452,62 @@ export class HotelView {
       g,
       0.3,
     );
-    if (!this.addFurniture("boutique-bed", g, 0, 0.27, 0.1, lv, theme)) {
-      this.round(3.4, 0.52, 3.8, 0xad8055, 0, 0.56, 0.1, g, 0.2);
-      this.round(
-        3.5,
-        0.75,
-        0.27,
-        lv === 2 ? 0xc19a55 : theme,
-        0,
-        1.12,
-        -1.75,
+    if (
+      !this.addFurniture(
+        lv === 1 ? "standard-single-bed" : "boutique-bed",
         g,
-        0.12,
-      );
+        0,
+        0.27,
+        0.1,
+        lv,
+        theme,
+      )
+    ) {
+      const fallbackBed = new T.Group();
+      fallbackBed.scale.x = lv === 1 ? 0.56 : 1;
+      g.add(fallbackBed);
+      this.round(3.4, 0.52, 3.8, 0xad8055, 0, 0.56, 0.1, fallbackBed, 0.2);
+      this.round(3.5, 0.75, 0.27, theme, 0, 1.12, -1.75, fallbackBed, 0.12);
       for (let x = -1.45; x < 1.5; x += 0.48)
-        this.round(0.025, 0.57, 0.018, 0xb6c9af, x, 1.12, -1.598, g, 0.005);
-      this.round(3.3, 0.28, 3.65, 0xfff9e9, 0, 0.91, 0.13, g, 0.22);
-      this.round(3.34, 0.13, 3.15, 0xf4ead7, 0, 1.075, 0.38, g, 0.055);
+        this.round(
+          0.025,
+          0.57,
+          0.018,
+          0xb6c9af,
+          x,
+          1.12,
+          -1.598,
+          fallbackBed,
+          0.005,
+        );
+      this.round(3.3, 0.28, 3.65, 0xfff9e9, 0, 0.91, 0.13, fallbackBed, 0.22);
       this.round(
         3.34,
-        0.12,
-        1.25,
-        this.fabric("linen", lv === 2 ? 0xe2bc6e : theme),
+        0.13,
+        3.15,
+        0xf4ead7,
         0,
-        1.19,
-        1.05,
-        g,
-        0.12,
+        1.075,
+        0.38,
+        fallbackBed,
+        0.055,
       );
-      for (const x of [-0.78, 0.78]) {
-        this.round(1.3, 0.25, 0.73, 0xfffcf0, x, 1.14, -1.12, g, 0.22);
+      this.round(3.34, 0.12, 1.25, theme, 0, 1.19, 1.05, fallbackBed, 0.12);
+      for (const x of lv === 1 ? [0] : [-0.78, 0.78]) {
         this.round(
-          0.55,
-          0.19,
-          0.55,
-          lv === 2 ? 0xe9ce94 : 0xb6d2be,
-          x,
           1.3,
-          -0.71,
-          g,
-          0.12,
+          0.25,
+          0.73,
+          0xfffcf0,
+          x,
+          1.14,
+          -1.12,
+          fallbackBed,
+          0.22,
         );
+        this.round(0.55, 0.19, 0.55, theme, x, 1.3, -0.71, fallbackBed, 0.12);
       }
-      this.box(
-        3.33,
-        0.04,
-        0.23,
-        lv === 2 ? 0xffe0a1 : 0xa6c6b7,
-        0,
-        1.23,
-        1.25,
-        g,
-      );
+      this.box(3.33, 0.04, 0.23, theme, 0, 1.23, 1.25, fallbackBed);
     }
     for (const x of [-2.6, 2.6]) {
       if (this.addFurniture("bedside-lamp", g, x, 0.22, -1.27)) continue;
@@ -1566,30 +1620,49 @@ export class HotelView {
       sweep.rotation.z = -0.2;
     }
     const legs = [],
+      knees = [],
       arms = [],
+      elbows = [],
       shoes = [];
     for (const x of [-0.15, 0.15]) {
       const leg = new T.Group();
       leg.position.set(x, 0.54, 0);
       g.add(leg);
       this.mesh(
-        new T.CapsuleGeometry(0.095, 0.24, 4, 10),
+        new T.CapsuleGeometry(0.095, 0.11, 4, 10),
         player ? 0x426c60 : 0x4c5964,
         0,
-        -0.22,
+        -0.11,
         0,
         leg,
       );
+      const knee = new T.Group();
+      knee.position.y = -0.24;
+      leg.add(knee);
+      this.mesh(
+        new T.CapsuleGeometry(0.082, 0.1, 4, 10),
+        player ? 0x426c60 : 0x4c5964,
+        0,
+        -0.08,
+        0,
+        knee,
+      );
+      knees.push(knee);
       legs.push(leg);
       shoes.push(
-        this.round(0.22, 0.14, 0.33, 0x534637, 0, -0.41, 0.045, leg, 0.06),
+        this.round(0.22, 0.14, 0.33, 0x534637, 0, -0.17, 0.045, knee, 0.06),
       );
       const arm = new T.Group();
       arm.position.set(x * 2.2, 1.15, 0);
       g.add(arm);
       this.cyl(0.085, 0.09, 0.2, shirt, 0, -0.09, 0, arm);
-      this.cyl(0.07, 0.08, 0.28, skin, 0, -0.32, 0, arm);
-      this.sphere(0.077, skin, 0, -0.47, 0, arm);
+      const elbow = new T.Group();
+      elbow.position.y = -0.21;
+      arm.add(elbow);
+      this.sphere(0.074, skin, 0, 0, 0, elbow);
+      this.cyl(0.07, 0.075, 0.2, skin, 0, -0.1, 0, elbow);
+      this.sphere(0.077, skin, 0, -0.26, 0, elbow);
+      elbows.push(elbow);
       arm.rotation.z = x < 0 ? -0.12 : 0.12;
       arms.push(arm);
     }
@@ -1645,7 +1718,9 @@ export class HotelView {
       g.userData.float = float;
     }
     g.userData.legs = legs;
+    g.userData.knees = knees;
     g.userData.arms = arms;
+    g.userData.elbows = elbows;
     g.userData.shoes = shoes;
     return g;
   }
@@ -1955,7 +2030,8 @@ export class HotelView {
       actor.position.lerp(target, Math.min(1, dt * 2));
       actor.rotation.y = Math.atan2(dx, dz);
       this.animateActor(actor, { moving: Math.hypot(dx, dz) > 0.1 }, dt);
-      actor.userData.cup.visible = !!guest;
+      actor.userData.cup.visible = false;
+      actor.userData.servingTray.visible = !!guest;
       actor.userData.arms.forEach((arm, index) => {
         arm.rotation.x = guest
           ? -0.8 + (index ? 0 : Math.sin(g.time * 4) * 0.08)
@@ -2017,6 +2093,11 @@ export class HotelView {
         a.userData.arms.forEach(
           (arm, j) =>
             (arm.rotation.x = Math.sin(g.time * 8 + j * Math.PI) * 0.25 - 0.3),
+        );
+        a.userData.knees.forEach(
+          (knee, j) =>
+            (knee.rotation.x =
+              Math.max(0, Math.sin(g.time * 8 + j * Math.PI)) * 0.6),
         );
         a.userData.luggage.visible = false;
       }
@@ -2345,7 +2426,9 @@ export class HotelView {
     actor.userData.arms.forEach(
       (arm, i) => (arm.rotation.x = -0.55 + scrub * (i ? 0.1 : 0.22)),
     );
-    actor.position.y = 0.012 * (1 + scrub);
+    actor.position.y = this.reducedMotion ? 0 : 0.012 * (1 + scrub);
+    actor.rotation.x = 0.1;
+    actor.userData.elbows?.forEach((elbow) => (elbow.rotation.x = -0.2));
   }
   animateActor(a, v, dt = 0.016) {
     const state = stepMotion(
@@ -2372,6 +2455,17 @@ export class HotelView {
     a.userData.arms.forEach(
       (arm, i) => (arm.rotation.x = pose.arm * (i ? 1 : -1)),
     );
-    if (a.userData.luggage) a.userData.luggage.rotation.x = pose.leg * 0.12;
+    a.userData.knees?.forEach((knee, i) => {
+      knee.rotation.x =
+        Math.max(0, Math.sin(state.stride + i * Math.PI)) * state.speed * 0.55;
+    });
+    a.userData.elbows?.forEach((elbow, i) => {
+      elbow.rotation.x =
+        -Math.max(0, Math.sin(state.stride + i * Math.PI)) * state.speed * 0.25;
+    });
+    if (a.userData.luggage) {
+      a.userData.luggage.rotation.x = pose.leg * 0.12;
+      if (a.userData.luggage.visible) a.userData.arms[1].rotation.x = -0.15;
+    }
   }
 }

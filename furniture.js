@@ -5,6 +5,16 @@ let loading;
 export function preloadFurniture() {
   return (loading ??= Promise.all(
     [
+      "standard-single-bed",
+      "dining-set",
+      "cafe-counter",
+      "service-counter",
+      "bar-counter",
+      "treadmill",
+      "pool-lounger",
+      "pool-umbrella",
+      "spa-bed",
+      "coastal-planter",
       "reception-desk",
       "boutique-bed",
       "bedside-lamp",
