@@ -1,7 +1,7 @@
-import { RESTORATION } from "./restoration.js?v=94f9b88e35285f1e";
-import { selectDecor } from "./decor.js?v=94f9b88e35285f1e";
-import { ECONOMY } from "./economy.js?v=94f9b88e35285f1e";
-import { createRooftop, updateRooftop } from "./rooftop.js?v=94f9b88e35285f1e";
+import { RESTORATION } from "./restoration.js?v=07f894a9cb744be8";
+import { selectDecor } from "./decor.js?v=07f894a9cb744be8";
+import { ECONOMY } from "./economy.js?v=07f894a9cb744be8";
+import { createRooftop, updateRooftop } from "./rooftop.js?v=07f894a9cb744be8";
 import {
   createGame,
   update,
@@ -12,7 +12,7 @@ import {
   RECEPTION,
   roomRoute,
   distance,
-} from "./model.js?v=94f9b88e35285f1e";
+} from "./model.js?v=07f894a9cb744be8";
 
 // Demand follows built rooms accepting bookings across both floors.
 export function arrivalInterval(h, busy = false) {

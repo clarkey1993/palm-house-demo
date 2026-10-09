@@ -1,8 +1,8 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=94f9b88e35285f1e";
-import { furniture } from "./furniture.js?v=94f9b88e35285f1e";
-import { stepMotion, motionPose } from "./animation.js?v=94f9b88e35285f1e";
-import { DECOR } from "./decor.js?v=94f9b88e35285f1e";
-import * as T from "./vendor/three.module.js?v=94f9b88e35285f1e";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=07f894a9cb744be8";
+import { furniture } from "./furniture.js?v=07f894a9cb744be8";
+import { stepMotion, motionPose } from "./animation.js?v=07f894a9cb744be8";
+import { DECOR } from "./decor.js?v=07f894a9cb744be8";
+import * as T from "./vendor/three.module.js?v=07f894a9cb744be8";
 import {
   ROOMS,
   cafeOffset,
@@ -23,7 +23,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=94f9b88e35285f1e";
+} from "./model.js?v=07f894a9cb744be8";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -1362,19 +1362,6 @@ export class HotelView {
       );
       a.rotation.y = 0;
       p.add(a);
-      this.sign(
-        "CONCIERGE",
-        2.2,
-        0.5,
-        7.8,
-        0.4,
-        12.5,
-        p,
-        "#f4dba7",
-        "#497763",
-        39,
-      ).rotation.x = -Math.PI / 2;
-      this.plant(8, 12, 1.3, p);
     }
   }
   buildRoom(i) {
