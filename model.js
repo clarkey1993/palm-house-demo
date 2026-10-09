@@ -851,6 +851,13 @@ export function obstacles(s) {
     const left = room.x < 0,
       x = room.x - 3.6;
     r.push({ x, z: room.z - 3.3, w: 7.6, d: 0.28 });
+    r.push({ x: room.x - 3.9, z: room.z + 3.25, w: 7.8, d: 0.3 });
+    r.push({
+      x: room.x + Math.sign(room.x) * 3.9 - 0.15,
+      z: room.z - 3.3,
+      w: 0.3,
+      d: 6.85,
+    });
     r.push({
       x: left ? room.x + 3.5 : room.x - 3.8,
       z: room.z - 3.3,

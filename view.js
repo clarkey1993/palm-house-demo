@@ -1417,6 +1417,50 @@ export class HotelView {
       );
       this.box(7.65, 0.14, 0.32, colors.cream, 0, 1.85, -3.3, g);
     }
+    // Complete the room enclosure, keeping the corridor doorway as its only opening.
+    // Low cutaway walls match the side panels and keep guests visible from above.
+    if (
+      !placeArchitecture(
+        this,
+        "bedroom-panel-wall",
+        g,
+        0,
+        0.2,
+        3.4,
+        7.8,
+        Math.PI,
+        0.8,
+      )
+    ) {
+      this.box(7.8, 0.9, 0.24, this.fabric("wall", theme), 0, 0.65, 3.4, g);
+      this.box(7.85, 0.12, 0.35, colors.cream, 0, 1.15, 3.4, g);
+    }
+    const outside = Math.sign(r.x) * 3.9;
+    if (
+      !placeArchitecture(
+        this,
+        "bedroom-panel-wall",
+        g,
+        outside,
+        0.2,
+        0.05,
+        6.7,
+        Math.PI / 2,
+        0.8,
+      )
+    ) {
+      this.box(
+        0.24,
+        0.9,
+        6.7,
+        this.fabric("wall", theme),
+        outside,
+        0.65,
+        0.05,
+        g,
+      );
+      this.box(0.35, 0.12, 6.7, colors.cream, outside, 1.15, 0.05, g);
+    }
     const edge = i % 2 === 0 ? 3.65 : -3.65;
     if (
       !placeArchitecture(

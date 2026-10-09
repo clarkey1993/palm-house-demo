@@ -1,6 +1,6 @@
 {
   "channel": "playtest",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "files": {
     "ambience.js": "c7b200291a59b3563cb40ad9d9276108c2a7bc0ff78f489e11662a9af0c255a0",
     "animation.js": "1db2906c0be9e05ab30604c8fa101c27f7817312f73a5ec3fd56a255ea23fc9c",
@@ -31,7 +31,7 @@
     "assets/models/standard-single-bed.glb": "f6786e0774a4921c14de1be4204a397d252d82da3b5605b4621210ef5df79a3d",
     "assets/models/treadmill.glb": "fff8aaef4390055f738aa5957f6733e42b524859458b3c8116e32194e1b5bce5",
     "assets/models/upstairs-carpet.glb": "afd4acd01f51837cc9f477d974dc857ca50898469e947d3136b9ceda818adf4f",
-    "build-config.js": "8dcfbe1040ae2111ad9cc0c1a708f6ff5813df21e982629f237359e4dd942ee0",
+    "build-config.js": "f1bdf5f583e0eac8e461c126a0557c5a132a761e3a0e4a5ab0b968f4b129c438",
     "decor.js": "617e976a6b21e0e49aff8b03618a3b332040d0d508dd043c7f638787cf4d86a9",
     "economy.js": "f753a9adc97e8e3fa6fb1543ffac21fd934c45bf9bbbab2bdb81877fe2124ce2",
     "feedback.js": "8cba74234c92915e3fbdf2ec968e93b75a0e3c1f067b212eaf3393a21dbd14b2",
@@ -41,7 +41,7 @@
     "journey.js": "5a13d9786fd557b0d52eb5e8bde83385f232b3e6c7b5ea541c503020e9d5e4d7",
     "layout.js": "74b07aa77df53eae4c8662aac19a75c7ce5ccabbf9f8cf9eb3b0d17cbb832fd4",
     "main.js": "4f70035ae5c1e89d1be1d1681203672e5d47b38deda65a7a9af4a18504f739da",
-    "model.js": "eab1ea48d245290a6ca765f410388e28050bdd4208b62760999b429df974bded",
+    "model.js": "1cb114e5fe39764939f32152964f7b0fa1251052fbcbc5492aa411a72272261c",
     "onboarding.js": "e234043ae47c6d4e250ada374c212ad06c170d2f5309804750669b237d44c076",
     "opening.js": "4d3624c491fe85bdeb1ae41df5ca7240950d961fece0ec86b74a354ecb50fdfc",
     "playtest.js": "5ef36f464775cd2b9840644275b3d1ab909e82a919fa7f81bec31ef36035180d",
@@ -57,6 +57,6 @@
     "vendor/LICENSE": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601",
     "vendor/three.core.js": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20",
     "vendor/three.module.js": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a",
-    "view.js": "70f0ae71b34fc886fffefbefbf997d787798a5dccdb04bbcdf54ee6e52f1267b"
+    "view.js": "760d33549e660345fc00b55d003ce153034c4e36c075b2a56d6ad04a2cf533df"
   }
 }
