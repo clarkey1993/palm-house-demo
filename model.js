@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=07f894a9cb744be8";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=07f894a9cb744be8";
-import { ECONOMY } from "./economy.js?v=07f894a9cb744be8";
-import { demoPadAllowed } from "./opening.js?v=07f894a9cb744be8";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=a8268884754de4a5";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=a8268884754de4a5";
+import { ECONOMY } from "./economy.js?v=a8268884754de4a5";
+import { demoPadAllowed } from "./opening.js?v=a8268884754de4a5";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -1488,8 +1488,11 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
       else if (i === 24) s.extraDesk = true;
       else if (i === 28) s.roofUnlocked = true;
       else if (i === 33) s.restaurantPlot = true;
-      else if (i === 34) s.diningExpansion = true;
-      else if (i === 35) s.kitchen++;
+      else if (i === 34) {
+        s.diningExpansion = true;
+        // The construction pad becomes a table; leave the manager in the aisle.
+        if (blocked(g, g.player.x, g.player.z)) g.player.z = -5.5;
+      } else if (i === 35) s.kitchen++;
       else if (i === 36) s.gym = true;
       else if (i === 37) s.gymUpgrade = true;
       else if (i >= 25 && i <= 27) s[LOBBY_UPGRADES[i]]++;
