@@ -1,3 +1,4 @@
+import { coverFloor, placeArchitecture } from "./architecture.js";
 import { furniture } from "./furniture.js";
 import { stepMotion, motionPose } from "./animation.js";
 import { DECOR } from "./decor.js";
@@ -495,42 +496,59 @@ export class HotelView {
     this.round(31, 0.22, 36, 0xf1dbab, 0, -0.43, 1.5, this.scene, 3);
     this.round(25, 0.55, 29, 0xc19c70, 0, -0.22, 1, this.scene, 0.4);
     this.round(24.5, 0.12, 28.6, 0xf3e5c6, 0, 0.08, 1, this.scene, 0.4);
-    for (let z = -12.5; z < 15; z += 1.05)
-      this.box(24, 0.012, 0.025, 0xe5d4b5, 0, 0.15, z);
-    for (let x = -11.8; x < 12; x += 1.2)
-      this.box(0.015, 0.013, 28, 0xebdabb, x, 0.15, 1);
-    this.round(
-      5.5,
-      0.035,
-      17.2,
-      this.fabric("border", this.game.state.floor ? 0x87749a : 0x4c988e),
-      0,
-      0.16,
-      -3.1,
-      this.scene,
-      0.1,
-    );
-    this.round(
-      5.1,
-      0.015,
-      16.7,
-      this.fabric("carpet", this.game.state.floor ? 0xb9a8c6 : 0x72b4a0),
-      0,
-      0.19,
-      -3.1,
-      this.scene,
-      0.1,
-    );
-    for (let z = -10.9; z < 5; z += 1.4)
-      this.box(
-        4.9,
-        0.014,
-        0.025,
-        this.fabric("stripe", this.game.state.floor ? 0xd4c4df : 0x8bc5ad),
+    if (
+      !coverFloor(this, "lobby-limestone", this.scene, 0, 1, 24.5, 28.6, 0.135)
+    ) {
+      for (let z = -12.5; z < 15; z += 1.05)
+        this.box(24, 0.012, 0.025, 0xe5d4b5, 0, 0.15, z);
+      for (let x = -11.8; x < 12; x += 1.2)
+        this.box(0.015, 0.013, 28, 0xebdabb, x, 0.15, 1);
+    }
+    if (
+      !coverFloor(
+        this,
+        this.game.state.floor ? "upstairs-carpet" : "lobby-runner",
+        this.scene,
         0,
-        0.202,
-        z,
+        -3.1,
+        5.1,
+        17.2,
+        0.17,
+      )
+    ) {
+      this.round(
+        5.5,
+        0.035,
+        17.2,
+        this.fabric("border", this.game.state.floor ? 0x87749a : 0x4c988e),
+        0,
+        0.16,
+        -3.1,
+        this.scene,
+        0.1,
       );
+      this.round(
+        5.1,
+        0.015,
+        16.7,
+        this.fabric("carpet", this.game.state.floor ? 0xb9a8c6 : 0x72b4a0),
+        0,
+        0.19,
+        -3.1,
+        this.scene,
+        0.1,
+      );
+      for (let z = -10.9; z < 5; z += 1.4)
+        this.box(
+          4.9,
+          0.014,
+          0.025,
+          this.fabric("stripe", this.game.state.floor ? 0xd4c4df : 0x8bc5ad),
+          0,
+          0.202,
+          z,
+        );
+    }
     this.backdrop = new T.Group();
     this.scene.add(this.backdrop);
     this.box(24.5, 2.7, 0.35, colors.cream, 0, 1.4, -13.1, this.backdrop);
@@ -765,30 +783,46 @@ export class HotelView {
     if (this.game.state.expanded) {
       this.box(25, 0.55, 7.5, 0xc19c70, 0, -0.22, -16.75, ext);
       this.box(24.5, 0.12, 7.5, 0xf3e5c6, 0, 0.08, -16.75, ext);
-      for (let z = -20; z < -13; z += 1.05)
-        this.box(24, 0.012, 0.025, 0xe5d4b5, 0, 0.15, z, ext);
-      this.round(
-        5.5,
-        0.035,
-        8.8,
-        this.fabric("border", 0x4c988e),
-        0,
-        0.16,
-        -16.1,
-        ext,
-        0.1,
-      );
-      this.round(
-        5.1,
-        0.02,
-        8.4,
-        this.fabric("carpet", 0x72b4a0),
-        0,
-        0.19,
-        -16.1,
-        ext,
-        0.1,
-      );
+      if (
+        !coverFloor(this, "lobby-limestone", ext, 0, -16.75, 24.5, 7.5, 0.135)
+      )
+        for (let z = -20; z < -13; z += 1.05)
+          this.box(24, 0.012, 0.025, 0xe5d4b5, 0, 0.15, z, ext);
+      if (
+        !coverFloor(
+          this,
+          this.game.state.floor ? "upstairs-carpet" : "lobby-runner",
+          ext,
+          0,
+          -16,
+          5.1,
+          8.6,
+          0.17,
+        )
+      ) {
+        this.round(
+          5.5,
+          0.035,
+          8.8,
+          this.fabric("border", 0x4c988e),
+          0,
+          0.16,
+          -16.1,
+          ext,
+          0.1,
+        );
+        this.round(
+          5.1,
+          0.02,
+          8.4,
+          this.fabric("carpet", 0x72b4a0),
+          0,
+          0.19,
+          -16.1,
+          ext,
+          0.1,
+        );
+      }
       this.sign(
         "GARDEN WING",
         4,
@@ -893,30 +927,44 @@ export class HotelView {
       this.round(31, 0.2, 12.5, 0xf1dbab, 0, -0.43, -26.25, p, 1);
       this.box(25, 0.55, 10, 0xc19c70, 0, -0.22, -25.5, p);
       this.box(24.5, 0.12, 10, 0xf3e5c6, 0, 0.08, -25.5, p);
-      for (let z = -30; z < -20; z += 1.05)
-        this.box(24, 0.012, 0.025, 0xe5d4b5, 0, 0.15, z, p);
-      this.round(
-        5.5,
-        0.035,
-        11.3,
-        this.fabric("border", 0x4c988e),
-        0,
-        0.16,
-        -24.85,
-        p,
-        0.1,
-      );
-      this.round(
-        5.1,
-        0.02,
-        10.9,
-        this.fabric("carpet", 0x72b4a0),
-        0,
-        0.19,
-        -24.85,
-        p,
-        0.1,
-      );
+      if (!coverFloor(this, "lobby-limestone", p, 0, -25.5, 24.5, 10, 0.135))
+        for (let z = -30; z < -20; z += 1.05)
+          this.box(24, 0.012, 0.025, 0xe5d4b5, 0, 0.15, z, p);
+      if (
+        !coverFloor(
+          this,
+          s.floor ? "upstairs-carpet" : "lobby-runner",
+          p,
+          0,
+          -25.3,
+          5.1,
+          10,
+          0.17,
+        )
+      ) {
+        this.round(
+          5.5,
+          0.035,
+          11.3,
+          this.fabric("border", 0x4c988e),
+          0,
+          0.16,
+          -24.85,
+          p,
+          0.1,
+        );
+        this.round(
+          5.1,
+          0.02,
+          10.9,
+          this.fabric("carpet", 0x72b4a0),
+          0,
+          0.19,
+          -24.85,
+          p,
+          0.1,
+        );
+      }
       // A low divider separates the two locked north rooms, leaving the hall open.
       for (const x of [-7.65, 7.65]) {
         this.round(8.2, 0.6, 0.38, 0xd2ba8e, x, 0.5, -22.35, p, 0.12);
@@ -1243,22 +1291,63 @@ export class HotelView {
     this.box(7.35, 0.045, 6.9, lv ? 0xe7d5b4 : 0xd1c9b4, 0, 0.19, 0, g);
     for (let z = -3; z < 3.4; z += 0.65)
       this.box(7.3, 0.009, 0.017, lv ? 0xd5c09d : 0xc7bea8, 0, 0.22, z, g);
-    this.box(
-      7.6,
-      1.65,
-      0.24,
-      lv ? this.fabric("wall", theme) : 0xb8c5ae,
-      0,
-      0.97,
-      -3.3,
-      g,
-    );
-    this.box(7.65, 0.14, 0.32, colors.cream, 0, 1.85, -3.3, g);
+    if (lv) coverFloor(this, "bedroom-oak-floor", g, 0, 0, 7.35, 6.9, 0.225);
+    if (
+      !placeArchitecture(
+        this,
+        "bedroom-panel-wall",
+        g,
+        0,
+        0.2,
+        -3.3,
+        7.6,
+        0,
+        1.3,
+      )
+    ) {
+      this.box(
+        7.6,
+        1.65,
+        0.24,
+        lv ? this.fabric("wall", theme) : 0xb8c5ae,
+        0,
+        0.97,
+        -3.3,
+        g,
+      );
+      this.box(7.65, 0.14, 0.32, colors.cream, 0, 1.85, -3.3, g);
+    }
     const edge = i % 2 === 0 ? 3.65 : -3.65;
-    this.box(0.24, 0.9, 3.6, 0xf1e6cc, edge, 0.65, -1.5, g);
-    this.box(0.24, 0.9, 1.2, 0xf1e6cc, edge, 0.65, 2.75, g);
-    this.box(0.35, 0.12, 3.6, 0xfff5df, edge, 1.15, -1.5, g);
-    this.box(0.35, 0.12, 1.2, 0xfff5df, edge, 1.15, 2.75, g);
+    if (
+      !placeArchitecture(
+        this,
+        "bedroom-panel-wall",
+        g,
+        edge,
+        0.2,
+        -1.5,
+        3.6,
+        Math.PI / 2,
+        0.8,
+      )
+    ) {
+      this.box(0.24, 0.9, 3.6, 0xf1e6cc, edge, 0.65, -1.5, g);
+      this.box(0.24, 0.9, 1.2, 0xf1e6cc, edge, 0.65, 2.75, g);
+      this.box(0.35, 0.12, 3.6, 0xfff5df, edge, 1.15, -1.5, g);
+      this.box(0.35, 0.12, 1.2, 0xfff5df, edge, 1.15, 2.75, g);
+    } else {
+      placeArchitecture(
+        this,
+        "bedroom-panel-wall",
+        g,
+        edge,
+        0.2,
+        2.75,
+        1.2,
+        Math.PI / 2,
+        0.8,
+      );
+    }
     this.sign(
       (this.game.state.floor ? "2" : "0") + (i + 1),
       0.9,
@@ -1367,6 +1456,7 @@ export class HotelView {
       );
     }
     for (const x of [-2.6, 2.6]) {
+      if (this.addFurniture("bedside-lamp", g, x, 0.22, -1.27)) continue;
       this.round(0.95, 0.7, 0.82, 0xc09565, x, 0.63, -1.27, g, 0.1);
       this.cyl(0.09, 0.15, 0.38, 0xb59659, x, 1.11, -1.27, g);
       this.cyl(0.28, 0.38, 0.4, 0xffedb8, x, 1.45, -1.27, g);
@@ -1386,28 +1476,30 @@ export class HotelView {
       leaf.rotation.z = k * 0.6;
     }
     this.plant(2.85, 2.5, 0.9, g);
-    this.round(
-      1.1,
-      0.22,
-      1.1,
-      lv === 2 ? 0xd8a676 : 0x9aaf83,
-      -2.6,
-      0.6,
-      2.3,
-      g,
-      0.25,
-    );
-    this.round(
-      1.15,
-      0.55,
-      0.3,
-      lv === 2 ? 0xd8a676 : 0x9aaf83,
-      -2.6,
-      0.88,
-      1.85,
-      g,
-      0.12,
-    );
+    if (!this.addFurniture("seaside-armchair", g, -2.6, 0.2, 2.3, lv, theme)) {
+      this.round(
+        1.1,
+        0.22,
+        1.1,
+        lv === 2 ? 0xd8a676 : 0x9aaf83,
+        -2.6,
+        0.6,
+        2.3,
+        g,
+        0.25,
+      );
+      this.round(
+        1.15,
+        0.55,
+        0.3,
+        lv === 2 ? 0xd8a676 : 0x9aaf83,
+        -2.6,
+        0.88,
+        1.85,
+        g,
+        0.12,
+      );
+    }
     if (lv === 2) {
       this.sign("✦", 0.6, 0.5, 0, 1.34, -3.13, g, "#48776c", "#f4d48a", 75);
       this.round(1.1, 0.15, 0.7, 0xfff0cf, 0, 1.31, 0.5, g, 0.1);

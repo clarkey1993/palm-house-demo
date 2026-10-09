@@ -4,7 +4,21 @@ let loading;
 // Bounded, optional artwork loading: a missing model must never prevent play.
 export function preloadFurniture() {
   return (loading ??= Promise.all(
-    ["reception-desk", "boutique-bed"].map(async (name) => {
+    [
+      "reception-desk",
+      "boutique-bed",
+      "bedside-lamp",
+      "seaside-armchair",
+      "lobby-limestone",
+      "lobby-runner",
+      "upstairs-carpet",
+      "bedroom-oak-floor",
+      "bedroom-panel-wall",
+      "bedroom-doorway",
+      "rooftop-pavers",
+      "rooftop-teak-deck",
+      "rooftop-railing",
+    ].map(async (name) => {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 5000);
       try {

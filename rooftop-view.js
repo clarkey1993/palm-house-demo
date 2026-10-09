@@ -1,3 +1,4 @@
+import { coverFloor, placeArchitecture } from "./architecture.js";
 import * as T from "./vendor/three.module.js";
 import { HotelView } from "./view.js";
 import { PADS } from "./model.js";
@@ -7,10 +8,49 @@ export class RooftopView extends HotelView {
     this.scene.background = new T.Color(0xabcfc9);
     this.box(23, 1.4, 29, 0xd4bf9e, 0, -0.5, 1.5);
     this.round(22.5, 0.12, 28.5, 0xf3e3c5, 0, 0.23, 1.5, this.scene, 0.5);
-    for (let z = -12; z < 15; z += 1.2)
-      this.box(22, 0.012, 0.025, 0xe1cdaa, 0, 0.31, z);
-    for (const x of [-11, 11]) this.box(0.25, 0.8, 28, 0xeaddc1, x, 0.65, 1.5);
-    this.box(22, 0.8, 0.25, 0xeaddc1, 0, 0.65, -12.5);
+    if (
+      !coverFloor(this, "rooftop-pavers", this.scene, 0, 1.5, 22.5, 28.5, 0.295)
+    ) {
+      for (let z = -12; z < 15; z += 1.2)
+        this.box(22, 0.012, 0.025, 0xe1cdaa, 0, 0.31, z);
+    }
+    coverFloor(this, "rooftop-teak-deck", this.scene, 6, -3, 8, 17, 0.3);
+    for (const x of [-11, 11]) {
+      for (let z = -10.5; z < 15; z += 4) {
+        const length = Math.min(4, 15.5 - (z - 2));
+        if (
+          !placeArchitecture(
+            this,
+            "rooftop-railing",
+            this.scene,
+            x,
+            0.25,
+            z - 2 + length / 2,
+            length,
+            Math.PI / 2,
+            0.7,
+          )
+        )
+          this.box(0.25, 0.8, length, 0xeaddc1, x, 0.65, z - 2 + length / 2);
+      }
+    }
+    for (let x = -9; x < 11; x += 4) {
+      const length = Math.min(4, 11 - (x - 2));
+      if (
+        !placeArchitecture(
+          this,
+          "rooftop-railing",
+          this.scene,
+          x - 2 + length / 2,
+          0.25,
+          -12.5,
+          length,
+          0,
+          0.7,
+        )
+      )
+        this.box(length, 0.8, 0.25, 0xeaddc1, x - 2 + length / 2, 0.65, -12.5);
+    }
     this.round(9.5, 0.3, 11, 0xfff6e2, -4.2, 0.4, -4.5, this.scene, 0.8);
     this.round(8.5, 0.07, 10, 0x55b9c0, -4.2, 0.59, -4.5, this.scene, 0.6);
     for (let n = 0; n < 9; n++)
