@@ -1,8 +1,13 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=e77c5804966c239b";
-import { furniture } from "./furniture.js?v=e77c5804966c239b";
-import { stepMotion, motionPose } from "./animation.js?v=e77c5804966c239b";
-import { DECOR } from "./decor.js?v=e77c5804966c239b";
-import * as T from "./vendor/three.module.js?v=e77c5804966c239b";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=3dabe0fd3180ef13";
+import { furniture } from "./furniture.js?v=3dabe0fd3180ef13";
+import {
+  stepMotion,
+  motionPose,
+  serviceRoute,
+  stepServiceRoute,
+} from "./animation.js?v=3dabe0fd3180ef13";
+import { DECOR } from "./decor.js?v=3dabe0fd3180ef13";
+import * as T from "./vendor/three.module.js?v=3dabe0fd3180ef13";
 import {
   ROOMS,
   cafeOffset,
@@ -24,7 +29,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=e77c5804966c239b";
+} from "./model.js?v=3dabe0fd3180ef13";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -1107,6 +1112,7 @@ export class HotelView {
       this.plant(32, -28.5, 1.2, p);
     }
     this.serverActors = [];
+    this.tableMeals = [];
     if (s.restaurantPlot) {
       const dining = new T.Group();
       dining.position.x = 4;
@@ -1163,6 +1169,23 @@ export class HotelView {
             this.cyl(0.16, 0.16, 0.04, 0xffffff, x, 1.04, z, dining);
           }
         }
+        for (let slot = 0; slot < (s.diningExpansion ? 6 : 3); slot++) {
+          const meal = new T.Group();
+          meal.position.set(
+            22 + (slot % 3) * 2,
+            1.12,
+            -2.65 - Math.floor(slot / 3) * 5,
+          );
+          dining.add(meal);
+          this.cyl(0.22, 0.22, 0.035, 0xfff5df, 0, 0, 0, meal);
+          const food = new T.Group();
+          meal.add(food);
+          this.sphere(0.1, 0xd99858, 0.05, 0.08, 0, food);
+          this.sphere(0.065, 0x83a568, -0.1, 0.06, 0.03, food);
+          meal.userData.food = food;
+          meal.visible = false;
+          this.tableMeals.push(meal);
+        }
         for (let k = 0; k < s.servers; k++) {
           const actor = this.character(4);
           actor.userData.luggage.visible = false;
@@ -1174,7 +1197,7 @@ export class HotelView {
           actor.userData.servingTray = tray;
           tray.visible = false;
           p.add(actor);
-          actor.position.set(22, 0, -6 + k * 1.2);
+          actor.position.set(25, 0, -10.4 + k * 0.65);
           this.serverActors.push(actor);
         }
         const serve = this.mesh(
@@ -2128,21 +2151,28 @@ export class HotelView {
     }
     for (const [i, actor] of (this.serverActors || []).entries()) {
       const guest = g.guests.find((v) => v.id === g.servingIds?.[i]);
-      const target = new T.Vector3(
-        guest ? guest.x : 22,
-        0,
-        guest ? guest.z + 0.6 : -6 + i * 1.2,
-      );
-      const dx = target.x - actor.position.x,
-        dz = target.z - actor.position.z;
-      const distance = Math.hypot(dx, dz);
-      const step = Math.min(distance, dt * 3.6 * workRate(s));
-      if (distance > 0.01) {
-        actor.position.x += (dx / distance) * step;
-        actor.position.z += (dz / distance) * step;
-        actor.rotation.y = Math.atan2(dx, dz);
+      const task = guest?.id ?? "idle";
+      if (actor.userData.serviceTask !== task) {
+        actor.userData.serviceTask = task;
+        actor.userData.serviceRoute = serviceRoute(
+          actor.position,
+          guest
+            ? { x: guest.x, z: guest.z + 0.65 }
+            : { x: 25, z: -10.4 + i * 0.65 },
+        );
       }
-      this.animateActor(actor, { moving: Math.hypot(dx, dz) > 0.1 }, dt);
+      const route = actor.userData.serviceRoute || [];
+      const next = stepServiceRoute(
+        { x: actor.position.x, z: actor.position.z, angle: actor.rotation.y },
+        route,
+        dt * 3.6 * workRate(s),
+      );
+      const moving =
+        Math.hypot(next.x - actor.position.x, next.z - actor.position.z) >
+        0.001;
+      actor.position.set(next.x, 0, next.z);
+      actor.rotation.y = moving ? next.angle : guest ? Math.PI : -Math.PI / 2;
+      this.animateActor(actor, { moving }, dt);
       actor.userData.cup.visible = false;
       actor.userData.servingTray.visible = !!guest;
       actor.userData.servingTray.rotation.x = -actor.rotation.x;
@@ -2155,12 +2185,29 @@ export class HotelView {
           : 0;
       });
     }
+    this.tableMeals?.forEach((meal, slot) => {
+      const guest = g.guests.find(
+        (v) => v.table === slot && v.phase === "restaurantEating",
+      );
+      meal.visible = !!guest;
+      if (guest)
+        meal.userData.food.scale.setScalar(
+          Math.max(0.15, Math.min(1, guest.timer / 5)),
+        );
+    });
     const ids = new Set();
     for (const guest of g.guests) {
       ids.add(guest.id);
       let a = this.actorMap.get(guest.id);
       if (!a) {
         a = this.character(guest.color);
+        const menu = new T.Group();
+        this.box(0.33, 0.4, 0.035, 0x426c60, 0, 0, 0, menu);
+        this.box(0.21, 0.025, 0.01, 0xeed49b, 0, 0.08, 0.023, menu);
+        menu.position.set(0, 0.95, 0.38);
+        menu.rotation.x = -0.35;
+        a.add(menu);
+        a.userData.menu = menu;
         this.scene.add(a);
         this.actorMap.set(guest.id, a);
       }
@@ -2191,6 +2238,7 @@ export class HotelView {
         "fromLift",
       ].includes(guest.phase);
       a.userData.cup.visible = coffee;
+      a.userData.menu.visible = guest.phase === "restaurant";
       a.userData.float.visible = false;
       a.userData.legs.forEach((l) => (l.visible = true));
       a.userData.shoes.forEach((l) => (l.visible = true));
@@ -2226,7 +2274,14 @@ export class HotelView {
         a.userData.knees.forEach((knee) => (knee.rotation.x = Math.PI / 2));
         a.userData.arms.forEach((arm) => (arm.rotation.x = -0.65));
         a.userData.elbows.forEach((elbow) => (elbow.rotation.x = -0.45));
-        a.userData.cup.visible = guest.phase === "restaurantEating";
+        a.userData.cup.visible = false;
+        if (guest.phase === "restaurantEating") {
+          const bite = this.reducedMotion
+            ? 0
+            : Math.pow(Math.max(0, Math.sin(g.time * 2.4 + guest.id)), 3);
+          a.userData.arms[0].rotation.x = -0.7 - bite * 0.55;
+          a.userData.elbows[0].rotation.x = -0.45 - bite * 0.65;
+        }
       }
       if (coffee && a.userData.cup.visible) {
         const sip = Math.pow(Math.max(0, Math.sin(g.time * 1.4 + guest.id)), 4);

@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=e77c5804966c239b";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=e77c5804966c239b";
-import { ECONOMY } from "./economy.js?v=e77c5804966c239b";
-import { demoPadAllowed } from "./opening.js?v=e77c5804966c239b";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=3dabe0fd3180ef13";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=3dabe0fd3180ef13";
+import { ECONOMY } from "./economy.js?v=3dabe0fd3180ef13";
+import { demoPadAllowed } from "./opening.js?v=3dabe0fd3180ef13";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,

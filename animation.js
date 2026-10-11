@@ -34,3 +34,30 @@ export function motionPose(m, time) {
       : 1 + Math.sin(time * 1.7 + m.stride) * 0.008 * (1 - m.speed),
   };
 }
+
+// Keep servers in the aisle beside the kitchen and between table rows.
+export function serviceRoute(from, to) {
+  return [{ x: 25, z: from.z }, { x: 25, z: to.z }, { ...to }];
+}
+export function stepServiceRoute(position, route, distance) {
+  const next = { x: position.x, z: position.z, angle: position.angle || 0 };
+  let remaining = Math.max(0, distance);
+  while (route.length) {
+    const point = route[0],
+      dx = point.x - next.x,
+      dz = point.z - next.z;
+    const length = Math.hypot(dx, dz);
+    if (length < 0.001) {
+      route.shift();
+      continue;
+    }
+    if (!remaining) break;
+    const step = Math.min(length, remaining);
+    next.x += (dx / length) * step;
+    next.z += (dz / length) * step;
+    next.angle = Math.atan2(dx, dz);
+    remaining -= step;
+    if (step === length) route.shift();
+  }
+  return next;
+}

@@ -7,7 +7,7 @@ import {
   payroll,
   onDuty,
   moveRate,
-} from "./model.js?v=e77c5804966c239b";
+} from "./model.js?v=3dabe0fd3180ef13";
 export const ROOF_LIFT = { x: 3.2, z: 12.8 };
 export const ROOF_CASH = { x: 1.7, z: 5.5 };
 export const roofValue = (s) =>

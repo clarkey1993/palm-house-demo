@@ -1,4 +1,4 @@
-import { GLTFLoader } from "./vendor/GLTFLoader.js?v=e77c5804966c239b";
+import { GLTFLoader } from "./vendor/GLTFLoader.js?v=3dabe0fd3180ef13";
 const templates = new Map();
 let loading;
 // Bounded, optional artwork loading: a missing model must never prevent play.
@@ -33,7 +33,7 @@ export function preloadFurniture() {
       const timeout = setTimeout(() => controller.abort(), 5000);
       try {
         const response = await fetch(
-          new URL(`./assets/models/${name}.glb?v=e77c5804966c239b`, import.meta.url),
+          new URL(`./assets/models/${name}.glb?v=3dabe0fd3180ef13`, import.meta.url),
           { signal: controller.signal },
         );
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
