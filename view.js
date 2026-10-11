@@ -1,13 +1,13 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=af9fb429fdccf7dc";
-import { furniture } from "./furniture.js?v=af9fb429fdccf7dc";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=9feefc9561df0e0f";
+import { furniture } from "./furniture.js?v=9feefc9561df0e0f";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=af9fb429fdccf7dc";
-import { DECOR } from "./decor.js?v=af9fb429fdccf7dc";
-import * as T from "./vendor/three.module.js?v=af9fb429fdccf7dc";
+} from "./animation.js?v=9feefc9561df0e0f";
+import { DECOR } from "./decor.js?v=9feefc9561df0e0f";
+import * as T from "./vendor/three.module.js?v=9feefc9561df0e0f";
 import {
   ROOMS,
   cafeOffset,
@@ -29,7 +29,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=af9fb429fdccf7dc";
+} from "./model.js?v=9feefc9561df0e0f";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -2556,7 +2556,7 @@ export class HotelView {
     );
     if (actor.userData.keycard) {
       actor.userData.keycard.visible = welcoming;
-      actor.userData.keycard.position.z = 0.48;
+      actor.userData.keycard.position.set(0.34, 1.55, 0.75);
     }
   }
   gymPose(actor, guest) {
