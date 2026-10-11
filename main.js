@@ -1,17 +1,17 @@
-import { mountFeedback } from "./feedback.js?v=c859d2c4a73a337f";
-import { preloadFurniture } from "./furniture.js?v=c859d2c4a73a337f";
+import { mountFeedback } from "./feedback.js?v=e83223e11df6ab4f";
+import { preloadFurniture } from "./furniture.js?v=e83223e11df6ab4f";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=c859d2c4a73a337f";
-import { createSeaAmbience } from "./ambience.js?v=c859d2c4a73a337f";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=c859d2c4a73a337f";
-import { openingTask } from "./onboarding.js?v=c859d2c4a73a337f";
-import { BUILD } from "./build-config.js?v=c859d2c4a73a337f";
-import { BrowserSaveStore } from "./save-store.js?v=c859d2c4a73a337f";
-import { PlaytestLog } from "./playtest.js?v=c859d2c4a73a337f";
+} from "./restoration.js?v=e83223e11df6ab4f";
+import { createSeaAmbience } from "./ambience.js?v=e83223e11df6ab4f";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=e83223e11df6ab4f";
+import { openingTask } from "./onboarding.js?v=e83223e11df6ab4f";
+import { BUILD } from "./build-config.js?v=e83223e11df6ab4f";
+import { BrowserSaveStore } from "./save-store.js?v=e83223e11df6ab4f";
+import { PlaytestLog } from "./playtest.js?v=e83223e11df6ab4f";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -19,7 +19,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=c859d2c4a73a337f";
+} from "./opening.js?v=e83223e11df6ab4f";
 import {
   createGame,
   update,
@@ -44,7 +44,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=c859d2c4a73a337f";
+} from "./model.js?v=e83223e11df6ab4f";
 import {
   createHotel,
   serializeHotel,
@@ -56,12 +56,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=c859d2c4a73a337f";
-import { HotelView } from "./view.js?v=c859d2c4a73a337f";
-import { RooftopView } from "./rooftop-view.js?v=c859d2c4a73a337f";
-import { roofValue } from "./rooftop.js?v=c859d2c4a73a337f";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=c859d2c4a73a337f";
-import { parseSave, SaveConflictError } from "./saves.js?v=c859d2c4a73a337f";
+} from "./hotel.js?v=e83223e11df6ab4f";
+import { HotelView } from "./view.js?v=e83223e11df6ab4f";
+import { RooftopView } from "./rooftop-view.js?v=e83223e11df6ab4f";
+import { roofValue } from "./rooftop.js?v=e83223e11df6ab4f";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=e83223e11df6ab4f";
+import { parseSave, SaveConflictError } from "./saves.js?v=e83223e11df6ab4f";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -532,7 +532,7 @@ $("#travel").onclick = () => {
   notify(
     hotel.floors[1]
       ? "Walk into the elevator to change floors. Step out before returning."
-      : "Build the $10,000 elevator on the gold square beside the entrance.",
+      : "Build the $7,500 elevator on the gold square beside the entrance.",
   );
   view.manual = true;
   view.target.set(LIFT.x, 0, LIFT.z - 2);
@@ -1176,7 +1176,7 @@ function hud() {
   $("#travel").textContent = hotel.floors[1]
     ? "Find elevator"
     : hotel.floors[0].state.expanded
-      ? "Elevator · $10k"
+      ? "Elevator · $7.5k"
       : "Find reception";
   const cycle = hotel.clock % 240;
   $("#rush").textContent =
@@ -1329,7 +1329,7 @@ function hud() {
   ) {
     title = s.elevator
       ? "Your next chapter is upstairs"
-      : "Build upwards · $10,000";
+      : "Build upwards · $7,500";
     detail = "The elevator by the entrance opens four new room projects.";
     head = "THE SKY SUITES";
     icon = "★";

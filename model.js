@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=c859d2c4a73a337f";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=c859d2c4a73a337f";
-import { ECONOMY } from "./economy.js?v=c859d2c4a73a337f";
-import { demoPadAllowed } from "./opening.js?v=c859d2c4a73a337f";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=e83223e11df6ab4f";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=e83223e11df6ab4f";
+import { ECONOMY } from "./economy.js?v=e83223e11df6ab4f";
+import { demoPadAllowed } from "./opening.js?v=e83223e11df6ab4f";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -252,7 +252,7 @@ export const benefit = (s, i) => {
   if (i === 24) return "Two staffed desks check in two guests at once";
   if (i >= 15)
     return {
-      15: "Open an unfinished second floor · rooms from $2,400",
+      15: "Open an unfinished second floor · rooms from $1,400",
       16: "Clean upstairs rooms 50% faster",
       17: "Guests relax here and leave $45 · more patience too",
       18: "Cash runners walk 50% faster",
