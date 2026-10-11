@@ -1,24 +1,24 @@
-import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=6a8a05d2f4a26606";
+import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=0a0346235cd14b54";
 import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=6a8a05d2f4a26606";
-import { mountFeedback } from "./feedback.js?v=6a8a05d2f4a26606";
-import { preloadFurniture } from "./furniture.js?v=6a8a05d2f4a26606";
+} from "./performance.js?v=0a0346235cd14b54";
+import { mountFeedback } from "./feedback.js?v=0a0346235cd14b54";
+import { preloadFurniture } from "./furniture.js?v=0a0346235cd14b54";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=6a8a05d2f4a26606";
-import { createSeaAmbience } from "./ambience.js?v=6a8a05d2f4a26606";
-import { createSoundEffects } from "./sound-effects.js?v=6a8a05d2f4a26606";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=6a8a05d2f4a26606";
-import { openingTask } from "./onboarding.js?v=6a8a05d2f4a26606";
-import { BUILD } from "./build-config.js?v=6a8a05d2f4a26606";
-import { BrowserSaveStore } from "./save-store.js?v=6a8a05d2f4a26606";
-import { PlaytestLog } from "./playtest.js?v=6a8a05d2f4a26606";
+} from "./restoration.js?v=0a0346235cd14b54";
+import { createSeaAmbience } from "./ambience.js?v=0a0346235cd14b54";
+import { createSoundEffects } from "./sound-effects.js?v=0a0346235cd14b54";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=0a0346235cd14b54";
+import { openingTask } from "./onboarding.js?v=0a0346235cd14b54";
+import { BUILD } from "./build-config.js?v=0a0346235cd14b54";
+import { BrowserSaveStore } from "./save-store.js?v=0a0346235cd14b54";
+import { PlaytestLog } from "./playtest.js?v=0a0346235cd14b54";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -26,7 +26,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=6a8a05d2f4a26606";
+} from "./opening.js?v=0a0346235cd14b54";
 import {
   createGame,
   update,
@@ -51,7 +51,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=6a8a05d2f4a26606";
+} from "./model.js?v=0a0346235cd14b54";
 import {
   createHotel,
   serializeHotel,
@@ -59,16 +59,17 @@ import {
   transferStaff,
   releaseStaff,
   totalWages,
+  payrollRecovery,
   toggleBookings,
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=6a8a05d2f4a26606";
-import { HotelView } from "./view.js?v=6a8a05d2f4a26606";
-import { RooftopView } from "./rooftop-view.js?v=6a8a05d2f4a26606";
-import { roofValue } from "./rooftop.js?v=6a8a05d2f4a26606";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=6a8a05d2f4a26606";
-import { parseSave, SaveConflictError } from "./saves.js?v=6a8a05d2f4a26606";
+} from "./hotel.js?v=0a0346235cd14b54";
+import { HotelView } from "./view.js?v=0a0346235cd14b54";
+import { RooftopView } from "./rooftop-view.js?v=0a0346235cd14b54";
+import { roofValue } from "./rooftop.js?v=0a0346235cd14b54";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=0a0346235cd14b54";
+import { parseSave, SaveConflictError } from "./saves.js?v=0a0346235cd14b54";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -1065,7 +1066,7 @@ $("#export-save").onclick = async () => {
   button.disabled = true;
   try {
     if (window.Capacitor?.getPlatform() === "ios") {
-      const { shareNativeBackup } = await import("./native-backup.js?v=6a8a05d2f4a26606");
+      const { shareNativeBackup } = await import("./native-backup.js?v=0a0346235cd14b54");
       const result = await shareNativeBackup(serializeHotel(hotel));
       $("#backup-feedback").textContent = result.completed
         ? "Backup exported. Keep it somewhere safe."
@@ -1569,6 +1570,36 @@ function hud() {
         : "NEARBY UPGRADE";
     progress = (s.paid[i] / price(s, i)) * 100;
     icon = "↑";
+  }
+  const recovery = payrollRecovery(hotel);
+  if (recovery && game.active < 0 && game.cleanRoom < 0) {
+    const floorName = ["the lobby", "the Sky Suites", "the rooftop"][
+      recovery.floor
+    ];
+    title = "Help your team get back to work";
+    detail =
+      hotel.active !== recovery.floor
+        ? "Walk into the elevator to " +
+          floorName +
+          (recovery.cash
+            ? " and collect the green cash."
+            : ". Welcome guests and collect their payments.")
+        : recovery.cash
+          ? "Walk over the green cash. Wages are paid automatically; your event progress is safe."
+          : "Welcome guests and clean rooms yourself to earn cash. Your event progress is safe.";
+    head = "WAGES · $" + recovery.missing + " MORE NEEDED";
+    icon = "$";
+    game.openingGuide = {
+      destination:
+        hotel.active !== recovery.floor ? LIFT : recovery.destination,
+      guide:
+        hotel.active !== recovery.floor
+          ? "Elevator to " + floorName
+          : recovery.cash
+            ? "Collect cash"
+            : "Reception",
+      pad: -1,
+    };
   }
   document
     .querySelector(".objective")

@@ -3,11 +3,11 @@ import {
   serviceTotals,
   advanceCampaign,
   applyCampaign,
-} from "./campaign.js?v=6a8a05d2f4a26606";
-import { RESTORATION } from "./restoration.js?v=6a8a05d2f4a26606";
-import { selectDecor } from "./decor.js?v=6a8a05d2f4a26606";
-import { ECONOMY } from "./economy.js?v=6a8a05d2f4a26606";
-import { createRooftop, updateRooftop } from "./rooftop.js?v=6a8a05d2f4a26606";
+} from "./campaign.js?v=0a0346235cd14b54";
+import { RESTORATION } from "./restoration.js?v=0a0346235cd14b54";
+import { selectDecor } from "./decor.js?v=0a0346235cd14b54";
+import { ECONOMY } from "./economy.js?v=0a0346235cd14b54";
+import { createRooftop, updateRooftop } from "./rooftop.js?v=0a0346235cd14b54";
 import {
   createGame,
   update,
@@ -18,7 +18,7 @@ import {
   RECEPTION,
   roomRoute,
   distance,
-} from "./model.js?v=6a8a05d2f4a26606";
+} from "./model.js?v=0a0346235cd14b54";
 
 // Demand follows built rooms accepting bookings across both floors.
 export function arrivalInterval(h, busy = false) {
@@ -555,5 +555,19 @@ export function floorMetrics(h, floor) {
     wait: waits.length
       ? waits.reduce((a, e) => a + e.wait, 0) / waits.length
       : null,
+  };
+}
+
+// When another floor is short of wages, explain how the shared wallet can recover.
+export function payrollRecovery(h) {
+  const due = h.floors.reduce((sum, g) => sum + g.state.wagesDue, 0);
+  if (!due) return null;
+  const cashFloor = h.floors.findIndex((g) => g.piles.length > 0);
+  const floor = cashFloor >= 0 ? cashFloor : 0;
+  return {
+    floor,
+    missing: Math.max(0, Math.ceil(due - h.floors[0].state.cash)),
+    cash: cashFloor >= 0,
+    destination: cashFloor >= 0 ? h.floors[floor].piles[0] : RECEPTION,
   };
 }

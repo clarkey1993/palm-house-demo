@@ -9,7 +9,7 @@ export const CAMPAIGN = [
     ready: (h) => state(h).levels.slice(0, 4).every(Boolean) && state(h).pool,
     tip: "Welcome guests, collect their cash and keep rooms clean. A receptionist and cleaner can help.",
     unlock: "Garden Wing",
-    reward: 200,
+    reward: 600,
     goals: [
       metric("welcomed", "Guests welcomed", 24),
       metric("cleaned", "Rooms refreshed", 16),
@@ -19,7 +19,8 @@ export const CAMPAIGN = [
   {
     id: "breakfast",
     title: "Breakfast by the sea",
-    preparation: "Open the Garden Wing and breakfast counter.",
+    preparation:
+      "Open the breakfast counter at the north end of the corridor, then the Garden Wing beside it.",
     ready: (h) => state(h).expanded && state(h).cafe,
     tip: "Keep bedrooms ready for arrivals. Departing guests stop for breakfast; collect their payments by the counter.",
     unlock: "Restaurant terrace",
@@ -32,7 +33,8 @@ export const CAMPAIGN = [
   {
     id: "dining",
     title: "An evening at Palm Kitchen",
-    preparation: "Build the restaurant on its terrace.",
+    preparation:
+      "Buy the restaurant terrace on the right of the lobby, then build Palm Kitchen there.",
     ready: (h) => state(h).restaurant,
     tip: "Stand at the serving counter or hire a server. More tables and a kitchen upgrade help your queue move.",
     unlock: "North Wing and gym",
@@ -45,7 +47,8 @@ export const CAMPAIGN = [
   {
     id: "wellness",
     title: "A restorative retreat",
-    preparation: "Open the gym above the restaurant.",
+    preparation:
+      "Extend the North Wing at the far end of the corridor, then open the gym above the restaurant on the right.",
     ready: (h) => state(h).gym,
     tip: "Fresh rooms bring new guests to the gym. Your team can handle service while you improve the hotel.",
     unlock: "Elevator to the Sky Suites",
@@ -58,7 +61,8 @@ export const CAMPAIGN = [
   {
     id: "suites",
     title: "A weekend in the Sky Suites",
-    preparation: "Open four upstairs rooms and the guest lounge.",
+    preparation:
+      "Build the elevator and walk into it. Upstairs, open the four original rooms and the lounge at the north end.",
     ready: (h) =>
       state(h, 1)?.levels.slice(0, 4).every(Boolean) && state(h, 1)?.lounge,
     tip: "Guests arrive from downstairs. Keep upstairs rooms clean yourself or hire a cleaner on that floor.",
@@ -72,7 +76,8 @@ export const CAMPAIGN = [
   {
     id: "rooftop",
     title: "Sunset at Palm House",
-    preparation: "Open the rooftop juice bar and spa.",
+    preparation:
+      "Unlock the rooftop from upstairs and take the elevator there. Open its juice bar and spa.",
     ready: (h) => state(h, 2)?.roofJuice && state(h, 2)?.roofSpa,
     tip: "Welcome guests at the pool or hire a rooftop host. There is no deadline: enjoy your finished hotel.",
     unlock: "Grand opening celebration",
@@ -106,7 +111,7 @@ export function restoreCampaign(saved, hasOldSave) {
   const next = CAMPAIGN[completed.length];
   const active = saved?.active === next?.id ? next?.id : null;
   const progress = {};
-  for (const g of next?.goals || [])
+  for (const g of active ? next.goals : [])
     progress[g.key] =
       active && Number.isFinite(saved?.progress?.[g.key])
         ? Math.max(0, Math.min(g.target, saved.progress[g.key]))
