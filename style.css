@@ -948,8 +948,8 @@ kbd {
   color: #647866;
 }
 
-/* Phone play keeps the centre clear; detailed operations live in Hotel Book. */
-@media (max-width: 600px) {
+/* Compact play on phones and tablets; detailed operations stay in Hotel Book. */
+@media (max-width: 1024px), (pointer: coarse) {
   header {
     top: max(10px, env(safe-area-inset-top));
     left: 12px;
@@ -1597,4 +1597,148 @@ input:focus-visible {
 .objective.upgrade-inspect #detail {
   font-size: 15px;
   line-height: 1.45;
+}
+
+/* Comfortable touch targets and a compact, safe-area-aware tablet HUD. */
+@media (max-width: 1024px), (pointer: coarse) {
+  header {
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+  }
+  .toolbar {
+    bottom: var(--hud-bottom, 140px);
+    right: max(12px, env(safe-area-inset-right));
+  }
+  .toolbar button,
+  .floor-controls button,
+  .book-tabs button,
+  .book-heading button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .floor-controls {
+    right: max(12px, env(safe-area-inset-right));
+    font-size: 12px;
+  }
+  .hospitality-status {
+    left: max(12px, env(safe-area-inset-left));
+  }
+  .hospitality-status b {
+    font-size: 12px;
+  }
+  #chapter-line {
+    display: none;
+  }
+  footer {
+    padding-inline: max(12px, env(safe-area-inset-left))
+      max(12px, env(safe-area-inset-right));
+  }
+  .objective {
+    width: min(520px, 100%);
+    padding: 12px 14px;
+  }
+  .objective strong {
+    font-size: 15px;
+    line-height: 1.35;
+  }
+  .objective span:not(#objective-icon),
+  .objective.upgrade-inspect #detail {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .objective #detail {
+    overflow-wrap: anywhere;
+  }
+  .control-hint {
+    display: none;
+  }
+  #management {
+    padding: max(12px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
+  }
+  .hotel-book {
+    max-height: 100%;
+    padding: 18px;
+    overscroll-behavior: contain;
+  }
+  .book-tabs button {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .book-panel button {
+    min-height: 44px;
+  }
+  .book-panel select,
+  .book-panel input,
+  .book-panel textarea {
+    font-size: 16px;
+  }
+}
+@media (max-width: 360px) {
+  h1 {
+    font-size: 20px;
+  }
+  .money b {
+    font-size: 21px;
+  }
+  .floor-controls {
+    gap: 4px;
+    font-size: 11px;
+  }
+  .floor-controls button {
+    padding-inline: 7px;
+  }
+  .hospitality-status {
+    padding: 7px 6px;
+  }
+  .hospitality-status b {
+    font-size: 11px;
+  }
+}
+@media (max-height: 500px) and (max-width: 1024px) {
+  header {
+    top: max(8px, env(safe-area-inset-top));
+  }
+  .hospitality-status {
+    top: 60px;
+  }
+  .floor-controls {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(140px, calc(env(safe-area-inset-right) + 128px));
+  }
+  .brand {
+    display: none;
+  }
+  header {
+    justify-content: flex-end;
+  }
+  .toolbar {
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+  footer {
+    width: calc(100% - 170px);
+    align-items: flex-start;
+  }
+  .objective {
+    max-width: 460px;
+    padding: 8px 12px;
+  }
+}
+@media (max-width: 1024px), (pointer: coarse) {
+  .book-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+  }
+  .book-tabs button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 500px) {
+  .hotel-book h2 {
+    font-size: 28px;
+  }
 }

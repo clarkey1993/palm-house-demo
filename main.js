@@ -1,17 +1,17 @@
-import { mountFeedback } from "./feedback.js?v=e83223e11df6ab4f";
-import { preloadFurniture } from "./furniture.js?v=e83223e11df6ab4f";
+import { mountFeedback } from "./feedback.js?v=cd7a0ed3d78511f7";
+import { preloadFurniture } from "./furniture.js?v=cd7a0ed3d78511f7";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=e83223e11df6ab4f";
-import { createSeaAmbience } from "./ambience.js?v=e83223e11df6ab4f";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=e83223e11df6ab4f";
-import { openingTask } from "./onboarding.js?v=e83223e11df6ab4f";
-import { BUILD } from "./build-config.js?v=e83223e11df6ab4f";
-import { BrowserSaveStore } from "./save-store.js?v=e83223e11df6ab4f";
-import { PlaytestLog } from "./playtest.js?v=e83223e11df6ab4f";
+} from "./restoration.js?v=cd7a0ed3d78511f7";
+import { createSeaAmbience } from "./ambience.js?v=cd7a0ed3d78511f7";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=cd7a0ed3d78511f7";
+import { openingTask } from "./onboarding.js?v=cd7a0ed3d78511f7";
+import { BUILD } from "./build-config.js?v=cd7a0ed3d78511f7";
+import { BrowserSaveStore } from "./save-store.js?v=cd7a0ed3d78511f7";
+import { PlaytestLog } from "./playtest.js?v=cd7a0ed3d78511f7";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -19,7 +19,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=e83223e11df6ab4f";
+} from "./opening.js?v=cd7a0ed3d78511f7";
 import {
   createGame,
   update,
@@ -44,7 +44,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=e83223e11df6ab4f";
+} from "./model.js?v=cd7a0ed3d78511f7";
 import {
   createHotel,
   serializeHotel,
@@ -56,12 +56,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=e83223e11df6ab4f";
-import { HotelView } from "./view.js?v=e83223e11df6ab4f";
-import { RooftopView } from "./rooftop-view.js?v=e83223e11df6ab4f";
-import { roofValue } from "./rooftop.js?v=e83223e11df6ab4f";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=e83223e11df6ab4f";
-import { parseSave, SaveConflictError } from "./saves.js?v=e83223e11df6ab4f";
+} from "./hotel.js?v=cd7a0ed3d78511f7";
+import { HotelView } from "./view.js?v=cd7a0ed3d78511f7";
+import { RooftopView } from "./rooftop-view.js?v=cd7a0ed3d78511f7";
+import { roofValue } from "./rooftop.js?v=cd7a0ed3d78511f7";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=cd7a0ed3d78511f7";
+import { parseSave, SaveConflictError } from "./saves.js?v=cd7a0ed3d78511f7";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -88,6 +88,19 @@ try {
     recoveredSave = loaded.recovered;
   }
 } catch {}
+// Keep touch controls above the actual task panel, including wrapped upgrade details.
+const footerLayout = new ResizeObserver(() => {
+  const footer = document.querySelector("footer");
+  document.documentElement.style.setProperty(
+    "--hud-bottom",
+    Math.ceil(
+      footer.getBoundingClientRect().height +
+        (parseFloat(getComputedStyle(footer).bottom) || 0) +
+        12,
+    ) + "px",
+  );
+});
+footerLayout.observe(document.querySelector("footer"));
 const preview = document.body.dataset.hotelPreview === "true";
 if (preview)
   saved = {
