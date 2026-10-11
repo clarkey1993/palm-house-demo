@@ -2,22 +2,22 @@ import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=9b4bec301f4bac73";
-import { mountFeedback } from "./feedback.js?v=9b4bec301f4bac73";
-import { preloadFurniture } from "./furniture.js?v=9b4bec301f4bac73";
+} from "./performance.js?v=907998017151e85d";
+import { mountFeedback } from "./feedback.js?v=907998017151e85d";
+import { preloadFurniture } from "./furniture.js?v=907998017151e85d";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=9b4bec301f4bac73";
-import { createSeaAmbience } from "./ambience.js?v=9b4bec301f4bac73";
-import { createSoundEffects } from "./sound-effects.js?v=9b4bec301f4bac73";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=9b4bec301f4bac73";
-import { openingTask } from "./onboarding.js?v=9b4bec301f4bac73";
-import { BUILD } from "./build-config.js?v=9b4bec301f4bac73";
-import { BrowserSaveStore } from "./save-store.js?v=9b4bec301f4bac73";
-import { PlaytestLog } from "./playtest.js?v=9b4bec301f4bac73";
+} from "./restoration.js?v=907998017151e85d";
+import { createSeaAmbience } from "./ambience.js?v=907998017151e85d";
+import { createSoundEffects } from "./sound-effects.js?v=907998017151e85d";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=907998017151e85d";
+import { openingTask } from "./onboarding.js?v=907998017151e85d";
+import { BUILD } from "./build-config.js?v=907998017151e85d";
+import { BrowserSaveStore } from "./save-store.js?v=907998017151e85d";
+import { PlaytestLog } from "./playtest.js?v=907998017151e85d";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -25,7 +25,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=9b4bec301f4bac73";
+} from "./opening.js?v=907998017151e85d";
 import {
   createGame,
   update,
@@ -50,7 +50,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=9b4bec301f4bac73";
+} from "./model.js?v=907998017151e85d";
 import {
   createHotel,
   serializeHotel,
@@ -62,12 +62,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=9b4bec301f4bac73";
-import { HotelView } from "./view.js?v=9b4bec301f4bac73";
-import { RooftopView } from "./rooftop-view.js?v=9b4bec301f4bac73";
-import { roofValue } from "./rooftop.js?v=9b4bec301f4bac73";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=9b4bec301f4bac73";
-import { parseSave, SaveConflictError } from "./saves.js?v=9b4bec301f4bac73";
+} from "./hotel.js?v=907998017151e85d";
+import { HotelView } from "./view.js?v=907998017151e85d";
+import { RooftopView } from "./rooftop-view.js?v=907998017151e85d";
+import { roofValue } from "./rooftop.js?v=907998017151e85d";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=907998017151e85d";
+import { parseSave, SaveConflictError } from "./saves.js?v=907998017151e85d";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -976,18 +976,27 @@ $("#easygoing").onchange = () => {
   hotel.easygoing = $("#easygoing").checked;
   save();
 };
-$("#export-save").onclick = () => {
-  const blob = new Blob([JSON.stringify(serializeHotel(hotel), null, 2)], {
-      type: "application/json",
-    }),
-    url = URL.createObjectURL(blob),
-    a = document.createElement("a");
-  a.href = url;
-  a.download = "palm-house-backup.json";
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  $("#backup-feedback").textContent =
-    "Backup downloaded. Keep it somewhere safe.";
+$("#export-save").onclick = async () => {
+  const button = $("#export-save");
+  button.disabled = true;
+  try {
+    if (window.Capacitor?.getPlatform() === "ios") {
+      const { shareNativeBackup } = await import("./native-backup.js?v=907998017151e85d");
+      const result = await shareNativeBackup(serializeHotel(hotel));
+      $("#backup-feedback").textContent = result.completed
+        ? "Backup exported. Keep it somewhere safe."
+        : "Export cancelled. Your hotel is unchanged.";
+    } else {
+      downloadJSON(serializeHotel(hotel), "palm-house-backup.json");
+      $("#backup-feedback").textContent =
+        "Backup download requested. Keep it somewhere safe.";
+    }
+  } catch {
+    $("#backup-feedback").textContent =
+      "Could not export your backup. Please try again; your hotel is unchanged.";
+  } finally {
+    button.disabled = false;
+  }
 };
 let pendingRestore = null;
 $("#import-save").onclick = () => $("#save-file").click();

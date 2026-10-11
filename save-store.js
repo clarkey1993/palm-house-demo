@@ -1,4 +1,4 @@
-import { loadSave, writeSave, SAVE_KEY, SaveConflictError } from "./saves.js?v=9b4bec301f4bac73";
+import { loadSave, writeSave, SAVE_KEY, SaveConflictError } from "./saves.js?v=907998017151e85d";
 
 // SaveStore contract: load(), raw(), write(value, expectedRaw), preserve(value).
 // Native atomic-file storage is a later device-validation milestone.
