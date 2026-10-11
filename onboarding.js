@@ -6,8 +6,8 @@ import {
   price,
   onDuty,
   distance,
-} from "./model.js?v=907998017151e85d";
-import { nextOpeningStep } from "./opening.js?v=907998017151e85d";
+} from "./model.js?v=7a79f1e45bdf239f";
+import { nextOpeningStep } from "./opening.js?v=7a79f1e45bdf239f";
 
 // One recommendation feeds both the written instruction and the map guide.
 // Never changes the player position or spends money.
@@ -77,9 +77,9 @@ export function openingTask(h) {
                 ? "Welcome a receptionist"
                 : "Open your little bar",
         detail:
-          "Stop on the glowing square · $" +
+          "Stand still on the golden pad to pay $" +
           remaining +
-          ". " +
+          ". Step away to stop. " +
           (pad < 4
             ? "Inside the room, by the outer wall."
             : pad === 8

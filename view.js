@@ -1,14 +1,14 @@
-import { performanceProfile, readSmoothPreference } from "./performance.js?v=907998017151e85d";
-import { coverFloor, placeArchitecture } from "./architecture.js?v=907998017151e85d";
-import { furniture } from "./furniture.js?v=907998017151e85d";
+import { performanceProfile, readSmoothPreference } from "./performance.js?v=7a79f1e45bdf239f";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=7a79f1e45bdf239f";
+import { furniture } from "./furniture.js?v=7a79f1e45bdf239f";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=907998017151e85d";
-import { DECOR } from "./decor.js?v=907998017151e85d";
-import * as T from "./vendor/three.module.js?v=907998017151e85d";
+} from "./animation.js?v=7a79f1e45bdf239f";
+import { DECOR } from "./decor.js?v=7a79f1e45bdf239f";
+import * as T from "./vendor/three.module.js?v=7a79f1e45bdf239f";
 import {
   ROOMS,
   cafeOffset,
@@ -30,7 +30,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=907998017151e85d";
+} from "./model.js?v=7a79f1e45bdf239f";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -2506,7 +2506,7 @@ export class HotelView {
         guideText = label(s, next.i);
       }
     }
-    if (s.openingDemo && g.openingGuide) {
+    if (g.openingGuide) {
       destination = g.openingGuide.destination;
       guideText = g.openingGuide.guide;
     }

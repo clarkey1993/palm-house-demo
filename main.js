@@ -2,22 +2,22 @@ import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=907998017151e85d";
-import { mountFeedback } from "./feedback.js?v=907998017151e85d";
-import { preloadFurniture } from "./furniture.js?v=907998017151e85d";
+} from "./performance.js?v=7a79f1e45bdf239f";
+import { mountFeedback } from "./feedback.js?v=7a79f1e45bdf239f";
+import { preloadFurniture } from "./furniture.js?v=7a79f1e45bdf239f";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=907998017151e85d";
-import { createSeaAmbience } from "./ambience.js?v=907998017151e85d";
-import { createSoundEffects } from "./sound-effects.js?v=907998017151e85d";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=907998017151e85d";
-import { openingTask } from "./onboarding.js?v=907998017151e85d";
-import { BUILD } from "./build-config.js?v=907998017151e85d";
-import { BrowserSaveStore } from "./save-store.js?v=907998017151e85d";
-import { PlaytestLog } from "./playtest.js?v=907998017151e85d";
+} from "./restoration.js?v=7a79f1e45bdf239f";
+import { createSeaAmbience } from "./ambience.js?v=7a79f1e45bdf239f";
+import { createSoundEffects } from "./sound-effects.js?v=7a79f1e45bdf239f";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=7a79f1e45bdf239f";
+import { openingTask } from "./onboarding.js?v=7a79f1e45bdf239f";
+import { BUILD } from "./build-config.js?v=7a79f1e45bdf239f";
+import { BrowserSaveStore } from "./save-store.js?v=7a79f1e45bdf239f";
+import { PlaytestLog } from "./playtest.js?v=7a79f1e45bdf239f";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -25,7 +25,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=907998017151e85d";
+} from "./opening.js?v=7a79f1e45bdf239f";
 import {
   createGame,
   update,
@@ -50,7 +50,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=907998017151e85d";
+} from "./model.js?v=7a79f1e45bdf239f";
 import {
   createHotel,
   serializeHotel,
@@ -62,12 +62,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=907998017151e85d";
-import { HotelView } from "./view.js?v=907998017151e85d";
-import { RooftopView } from "./rooftop-view.js?v=907998017151e85d";
-import { roofValue } from "./rooftop.js?v=907998017151e85d";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=907998017151e85d";
-import { parseSave, SaveConflictError } from "./saves.js?v=907998017151e85d";
+} from "./hotel.js?v=7a79f1e45bdf239f";
+import { HotelView } from "./view.js?v=7a79f1e45bdf239f";
+import { RooftopView } from "./rooftop-view.js?v=7a79f1e45bdf239f";
+import { roofValue } from "./rooftop.js?v=7a79f1e45bdf239f";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=7a79f1e45bdf239f";
+import { parseSave, SaveConflictError } from "./saves.js?v=7a79f1e45bdf239f";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -346,7 +346,7 @@ function showWelcome() {
   keys = {};
   $("#demo-title").innerHTML = "A little hotel.<br>A new beginning.";
   $("#demo-description").textContent =
-    "You have $500 and your first room. Welcome guests, collect their payments and make this seaside escape your own.";
+    "Start with $500 and one room. Stand behind reception to welcome a guest, then walk over their green cash. To buy something, walk onto its golden floor pad and stop moving. Stay there while the money pays in; step away to stop.";
   $("#demo-milestones").textContent = matchMedia("(pointer: coarse)").matches
     ? "Drag anywhere to walk · Pinch to zoom"
     : "Arrow keys or WASD to walk · Scroll to zoom";
@@ -981,7 +981,7 @@ $("#export-save").onclick = async () => {
   button.disabled = true;
   try {
     if (window.Capacitor?.getPlatform() === "ios") {
-      const { shareNativeBackup } = await import("./native-backup.js?v=907998017151e85d");
+      const { shareNativeBackup } = await import("./native-backup.js?v=7a79f1e45bdf239f");
       const result = await shareNativeBackup(serializeHotel(hotel));
       $("#backup-feedback").textContent = result.completed
         ? "Backup exported. Keep it somewhere safe."
@@ -1404,7 +1404,8 @@ function hud() {
     if (stage && restorationReady(hotel, stage))
       $("#manage").classList.add("reward-ready");
   }
-  if (BUILD.openingDemo) {
+  game.openingGuide = null;
+  if (!s.floor && !openingComplete(hotel)) {
     const step = nextOpeningStep(hotel),
       task = openingTask(hotel);
     game.openingGuide = task;
@@ -1433,7 +1434,7 @@ function hud() {
     const i = nearbyUpgrade.i,
       remaining = Math.ceil(price(s, i) - s.paid[i]);
     title = label(s, i) + " · $" + remaining.toLocaleString();
-    detail = benefit(s, i) || "Stand on this pad to build.";
+    detail = "Stand still on this pad to pay. " + (benefit(s, i) || "");
     head = game.active === i ? "STAND STILL TO INVEST" : "NEARBY UPGRADE";
     progress = (s.paid[i] / price(s, i)) * 100;
     icon = "↑";
@@ -1762,7 +1763,7 @@ try {
   $("#loading").hidden = true;
   if (recoveredSave) notify("Your backup restored your hotel safely.");
   else if (!saved) notify("Welcome to Palm House · $500 to make it yours.");
-  if ((BUILD.openingDemo || BUILD.logging) && !saved) showWelcome();
+  if (!saved) showWelcome();
   scheduleFrame();
 } catch (error) {
   console.error(error);

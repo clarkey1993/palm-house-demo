@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=907998017151e85d";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=907998017151e85d";
-import { ECONOMY } from "./economy.js?v=907998017151e85d";
-import { demoPadAllowed } from "./opening.js?v=907998017151e85d";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=7a79f1e45bdf239f";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=7a79f1e45bdf239f";
+import { ECONOMY } from "./economy.js?v=7a79f1e45bdf239f";
+import { demoPadAllowed } from "./opening.js?v=7a79f1e45bdf239f";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -9,7 +9,7 @@ export const CLEAN_SPOTS = ROOMS.map((r) => ({
 }));
 export const cafeOffset = (s) => (s.wing ? -17.5 : s.expanded ? -7.5 : 0);
 export const padPosition = (s, pad) =>
-  pad.i === 26 ? { ...pad, z: pad.z + cafeOffset(s) } : pad;
+  [7, 17, 26].includes(pad.i) ? { ...pad, z: pad.z + cafeOffset(s) } : pad;
 export const facilityPosition = (s, source) => ({
   ...FACILITIES[source],
   z: FACILITIES[source].z + (source === "cafe" ? cafeOffset(s) : 0),
@@ -1531,6 +1531,11 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
       else if (i >= 15)
         s[{ 15: "elevator", 16: "laundry", 17: "lounge", 18: "cart" }[i]] =
           true;
+      if (i === 7) {
+        // The counter replaces its construction pad. Leave its builder beside it.
+        g.player.x = 2.7;
+        g.player.z = -9 + cafeOffset(s);
+      }
       if (i === 16) {
         g.player.x = -5.3;
         g.player.z = 9.6;

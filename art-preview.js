@@ -1,4 +1,4 @@
-import * as T from "./vendor/three.module.js?v=907998017151e85d";
+import * as T from "./vendor/three.module.js?v=7a79f1e45bdf239f";
 function startStudio() {
   const canvas = document.querySelector("#studio");
   const scene = new T.Scene();
