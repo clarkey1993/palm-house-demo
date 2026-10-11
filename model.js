@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=2328ec85887a3c56";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=2328ec85887a3c56";
-import { ECONOMY } from "./economy.js?v=2328ec85887a3c56";
-import { demoPadAllowed } from "./opening.js?v=2328ec85887a3c56";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=c859d2c4a73a337f";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=c859d2c4a73a337f";
+import { ECONOMY } from "./economy.js?v=c859d2c4a73a337f";
+import { demoPadAllowed } from "./opening.js?v=c859d2c4a73a337f";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -1203,7 +1203,11 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
           v.route = [
             { x: 2.9, z: 4.7 },
             { x: 16, z: 4.7 },
-            { x: 16, z: -14 },
+            { x: 16, z: -16.8 - Math.floor(v.gymSlot / 3) * 5 },
+            {
+              x: 20 + (v.gymSlot % 3) * 4,
+              z: -16.8 - Math.floor(v.gymSlot / 3) * 5,
+            },
             {
               x: 20 + (v.gymSlot % 3) * 4,
               z: -18 - Math.floor(v.gymSlot / 3) * 5,
@@ -1251,6 +1255,8 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
         g.events.push({ type: "tip", ...FACILITIES.gym, value });
         v.phase = "leavingRoom";
         v.route = [
+          { x: v.x, z: -16.8 - Math.floor(v.gymSlot / 3) * 5 },
+          { x: 16, z: -16.8 - Math.floor(v.gymSlot / 3) * 5 },
           { x: 16, z: -14 },
           { x: 16, z: 4.7 },
           { x: 2.9, z: 4.7 },

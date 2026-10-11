@@ -7,7 +7,7 @@ import {
   payroll,
   onDuty,
   moveRate,
-} from "./model.js?v=2328ec85887a3c56";
+} from "./model.js?v=c859d2c4a73a337f";
 export const ROOF_LIFT = { x: 3.2, z: 12.8 };
 export const ROOF_CASH = { x: 1.7, z: 5.5 };
 export const roofValue = (s) =>
@@ -33,7 +33,25 @@ export function createRooftop(saved) {
   }));
   return g;
 }
-function walk(v, target, dt, speed = 3) {
+export function roofWalkRoute(from, target) {
+  const crossesFurniture = Array.from({ length: 81 }, (_, i) => i / 80).some(
+    (t) =>
+      roofBlocked(
+        from.x + (target.x - from.x) * t,
+        from.z + (target.z - from.z) * t,
+      ),
+  );
+  return crossesFurniture
+    ? [{ x: 4.6, z: from.z }, { x: 4.6, z: target.z }, { ...target }]
+    : [{ ...target }];
+}
+function walk(v, destination, dt, speed = 3) {
+  const key = destination.x + "," + destination.z;
+  if (v.walkTarget !== key || !v.walkRoute?.length) {
+    v.walkTarget = key;
+    v.walkRoute = roofWalkRoute(v, destination);
+  }
+  const target = v.walkRoute[0];
   const dx = target.x - v.x,
     dz = target.z - v.z,
     d = Math.hypot(dx, dz);
@@ -41,8 +59,9 @@ function walk(v, target, dt, speed = 3) {
   if (d < speed * dt) {
     v.x = target.x;
     v.z = target.z;
-    v.moving = false;
-    return true;
+    v.walkRoute.shift();
+    v.moving = v.walkRoute.length > 0;
+    return !v.moving;
   }
   v.x += (dx / d) * speed * dt;
   v.z += (dz / d) * speed * dt;
