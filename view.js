@@ -1,14 +1,14 @@
-import { performanceProfile, readSmoothPreference } from "./performance.js?v=1ecb862b7b9ddad2";
-import { coverFloor, placeArchitecture } from "./architecture.js?v=1ecb862b7b9ddad2";
-import { furniture } from "./furniture.js?v=1ecb862b7b9ddad2";
+import { performanceProfile, readSmoothPreference } from "./performance.js?v=a3b39fbb74b88123";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=a3b39fbb74b88123";
+import { furniture } from "./furniture.js?v=a3b39fbb74b88123";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=1ecb862b7b9ddad2";
-import { DECOR } from "./decor.js?v=1ecb862b7b9ddad2";
-import * as T from "./vendor/three.module.js?v=1ecb862b7b9ddad2";
+} from "./animation.js?v=a3b39fbb74b88123";
+import { DECOR } from "./decor.js?v=a3b39fbb74b88123";
+import * as T from "./vendor/three.module.js?v=a3b39fbb74b88123";
 import {
   ROOMS,
   cafeOffset,
@@ -30,7 +30,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=1ecb862b7b9ddad2";
+} from "./model.js?v=a3b39fbb74b88123";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -84,7 +84,7 @@ export class HotelView {
     this.palms = [];
     this.overview = false;
     this.manual = false;
-    this.tracking = false;
+    this.tracking = this.touchDevice;
     this.zoomFactor = 1;
     this.labels = [];
     this.guide = document.createElement("div");
@@ -1894,27 +1894,24 @@ export class HotelView {
     this.setFrustum();
   }
   setFrustum() {
-    let span = this.mobile
-      ? this.overview
-        ? 48
-        : 23
-      : this.overview
-        ? 36
-        : 32;
-    if (
-      this.game.state.expanded &&
-      (this.overview || (!this.mobile && !this.tracking))
-    )
-      span += 8;
-    if (this.aspect > 1.9) span = this.game.state.expanded ? 38 : 29;
-    if (this.game.state.wing && this.overview) span += 12;
-    if (this.game.state.restaurantPlot && this.overview) span += 8;
-    if (this.game.state.gym && this.overview) span += 14;
-    if (this.overview)
+    // Keep characters the same on-screen size when rotating or resizing.
+    // Capture the normal-play scale once; overview alone fits the hotel.
+    if (!this.playPixelsPerUnit && this.width > 0 && this.height > 0)
+      this.playPixelsPerUnit = this.touchDevice
+        ? Math.max(this.width, this.height) / 23
+        : this.height / 32;
+    let span = this.height / (this.playPixelsPerUnit || 1);
+    if (this.overview) {
+      span = this.mobile ? 48 : 36;
+      if (this.game.state.expanded) span += 8;
+      if (this.game.state.wing) span += 12;
+      if (this.game.state.restaurantPlot) span += 8;
+      if (this.game.state.gym) span += 14;
       span = Math.max(
         span,
         (this.game.state.restaurantPlot ? 54 : 32) / this.aspect,
       );
+    }
     span /= this.zoomFactor;
     this.camera.left = (-span * this.aspect) / 2;
     this.camera.right = (span * this.aspect) / 2;

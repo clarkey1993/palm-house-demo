@@ -1,24 +1,24 @@
-import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=1ecb862b7b9ddad2";
+import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=a3b39fbb74b88123";
 import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=1ecb862b7b9ddad2";
-import { mountFeedback } from "./feedback.js?v=1ecb862b7b9ddad2";
-import { preloadFurniture } from "./furniture.js?v=1ecb862b7b9ddad2";
+} from "./performance.js?v=a3b39fbb74b88123";
+import { mountFeedback } from "./feedback.js?v=a3b39fbb74b88123";
+import { preloadFurniture } from "./furniture.js?v=a3b39fbb74b88123";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=1ecb862b7b9ddad2";
-import { createSeaAmbience } from "./ambience.js?v=1ecb862b7b9ddad2";
-import { createSoundEffects } from "./sound-effects.js?v=1ecb862b7b9ddad2";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=1ecb862b7b9ddad2";
-import { openingTask } from "./onboarding.js?v=1ecb862b7b9ddad2";
-import { BUILD } from "./build-config.js?v=1ecb862b7b9ddad2";
-import { BrowserSaveStore } from "./save-store.js?v=1ecb862b7b9ddad2";
-import { PlaytestLog } from "./playtest.js?v=1ecb862b7b9ddad2";
+} from "./restoration.js?v=a3b39fbb74b88123";
+import { createSeaAmbience } from "./ambience.js?v=a3b39fbb74b88123";
+import { createSoundEffects } from "./sound-effects.js?v=a3b39fbb74b88123";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=a3b39fbb74b88123";
+import { openingTask } from "./onboarding.js?v=a3b39fbb74b88123";
+import { BUILD } from "./build-config.js?v=a3b39fbb74b88123";
+import { BrowserSaveStore } from "./save-store.js?v=a3b39fbb74b88123";
+import { PlaytestLog } from "./playtest.js?v=a3b39fbb74b88123";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -26,7 +26,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=1ecb862b7b9ddad2";
+} from "./opening.js?v=a3b39fbb74b88123";
 import {
   createGame,
   update,
@@ -51,7 +51,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=1ecb862b7b9ddad2";
+} from "./model.js?v=a3b39fbb74b88123";
 import {
   createHotel,
   serializeHotel,
@@ -64,12 +64,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=1ecb862b7b9ddad2";
-import { HotelView } from "./view.js?v=1ecb862b7b9ddad2";
-import { RooftopView } from "./rooftop-view.js?v=1ecb862b7b9ddad2";
-import { roofValue } from "./rooftop.js?v=1ecb862b7b9ddad2";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=1ecb862b7b9ddad2";
-import { parseSave, SaveConflictError } from "./saves.js?v=1ecb862b7b9ddad2";
+} from "./hotel.js?v=a3b39fbb74b88123";
+import { HotelView } from "./view.js?v=a3b39fbb74b88123";
+import { RooftopView } from "./rooftop-view.js?v=a3b39fbb74b88123";
+import { roofValue } from "./rooftop.js?v=a3b39fbb74b88123";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=a3b39fbb74b88123";
+import { parseSave, SaveConflictError } from "./saves.js?v=a3b39fbb74b88123";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -100,7 +100,7 @@ let saved,
 try {
   if (document.body.dataset.hotelPreview !== "true") {
     if (nativeStorage) {
-      const { createNativeSaveStore } = await import("./native-save-store.js?v=1ecb862b7b9ddad2");
+      const { createNativeSaveStore } = await import("./native-save-store.js?v=a3b39fbb74b88123");
       saveStore = await createNativeSaveStore(saveStore);
     }
     const loaded = await saveStore.load();
@@ -1112,7 +1112,7 @@ $("#export-save").onclick = async () => {
   button.disabled = true;
   try {
     if (window.Capacitor?.getPlatform() === "ios") {
-      const { shareNativeBackup } = await import("./native-backup.js?v=1ecb862b7b9ddad2");
+      const { shareNativeBackup } = await import("./native-backup.js?v=a3b39fbb74b88123");
       const result = await shareNativeBackup(serializeHotel(hotel));
       $("#backup-feedback").textContent = result.completed
         ? "Backup exported. Keep it somewhere safe."
