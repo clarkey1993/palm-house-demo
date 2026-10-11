@@ -1,17 +1,18 @@
-import { mountFeedback } from "./feedback.js?v=cd7a0ed3d78511f7";
-import { preloadFurniture } from "./furniture.js?v=cd7a0ed3d78511f7";
+import { mountFeedback } from "./feedback.js?v=c2a645c75fff610d";
+import { preloadFurniture } from "./furniture.js?v=c2a645c75fff610d";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=cd7a0ed3d78511f7";
-import { createSeaAmbience } from "./ambience.js?v=cd7a0ed3d78511f7";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=cd7a0ed3d78511f7";
-import { openingTask } from "./onboarding.js?v=cd7a0ed3d78511f7";
-import { BUILD } from "./build-config.js?v=cd7a0ed3d78511f7";
-import { BrowserSaveStore } from "./save-store.js?v=cd7a0ed3d78511f7";
-import { PlaytestLog } from "./playtest.js?v=cd7a0ed3d78511f7";
+} from "./restoration.js?v=c2a645c75fff610d";
+import { createSeaAmbience } from "./ambience.js?v=c2a645c75fff610d";
+import { createSoundEffects } from "./sound-effects.js?v=c2a645c75fff610d";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=c2a645c75fff610d";
+import { openingTask } from "./onboarding.js?v=c2a645c75fff610d";
+import { BUILD } from "./build-config.js?v=c2a645c75fff610d";
+import { BrowserSaveStore } from "./save-store.js?v=c2a645c75fff610d";
+import { PlaytestLog } from "./playtest.js?v=c2a645c75fff610d";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -19,7 +20,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=cd7a0ed3d78511f7";
+} from "./opening.js?v=c2a645c75fff610d";
 import {
   createGame,
   update,
@@ -44,7 +45,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=cd7a0ed3d78511f7";
+} from "./model.js?v=c2a645c75fff610d";
 import {
   createHotel,
   serializeHotel,
@@ -56,12 +57,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=cd7a0ed3d78511f7";
-import { HotelView } from "./view.js?v=cd7a0ed3d78511f7";
-import { RooftopView } from "./rooftop-view.js?v=cd7a0ed3d78511f7";
-import { roofValue } from "./rooftop.js?v=cd7a0ed3d78511f7";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=cd7a0ed3d78511f7";
-import { parseSave, SaveConflictError } from "./saves.js?v=cd7a0ed3d78511f7";
+} from "./hotel.js?v=c2a645c75fff610d";
+import { HotelView } from "./view.js?v=c2a645c75fff610d";
+import { RooftopView } from "./rooftop-view.js?v=c2a645c75fff610d";
+import { roofValue } from "./rooftop.js?v=c2a645c75fff610d";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=c2a645c75fff610d";
+import { parseSave, SaveConflictError } from "./saves.js?v=c2a645c75fff610d";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -182,7 +183,7 @@ let view,
   seaAudio,
   audioActive = null,
   ambienceEnabled = false,
-  lastSound = 0,
+  soundEffects,
   lastCash = -1;
 let soundSaved;
 try {
@@ -199,6 +200,7 @@ function unlockAudio() {
   try {
     audio ??= new (window.AudioContext || window.webkitAudioContext)();
     if (!seaAudio) seaAudio = createSeaAmbience(audio);
+    soundEffects ??= createSoundEffects(audio);
     if (audio.state === "suspended") audioActive = null;
     syncAudio();
   } catch {}
@@ -207,6 +209,7 @@ function syncAudio() {
   if (!audio) return;
   const active = !muted && !paused && !saveConflict && !document.hidden;
   seaAudio?.setEnabled(active && ambienceEnabled);
+  soundEffects?.setEnabled(active);
   if (active === audioActive) return;
   audioActive = active;
   const operation = active ? audio.resume() : audio.suspend();
@@ -425,33 +428,9 @@ function notify(t) {
   toastTime = 3.5;
 }
 function sound(kind) {
-  if (muted) return;
+  if (muted || !audioActive) return;
   try {
-    if (!audio || !audioActive) return;
-    if (audio.currentTime - lastSound < 0.045) return;
-    lastSound = audio.currentTime;
-    const notes =
-      kind === "build"
-        ? [523, 659, 784, 1047]
-        : kind === "collect"
-          ? [880, 1175]
-          : kind === "checkin"
-            ? [523, 659]
-            : [400];
-    notes.forEach((n, i) => {
-      let osc = audio.createOscillator(),
-        gain = audio.createGain(),
-        t = audio.currentTime + i * 0.085;
-      osc.type = "sine";
-      osc.frequency.value = n;
-      gain.gain.setValueAtTime(0, t);
-      gain.gain.linearRampToValueAtTime(0.06, t + 0.012);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.17);
-      osc.connect(gain);
-      gain.connect(audio.destination);
-      osc.start(t);
-      osc.stop(t + 0.18);
-    });
+    soundEffects?.play(kind);
   } catch {}
 }
 function soundButton() {
@@ -1504,7 +1483,7 @@ canvas.addEventListener("pointerdown", (e) => {
   };
   if (!hit) view.manual = true;
   else view.followPlayer();
-  if (audio?.state === "suspended") audio.resume();
+  unlockAudio();
 });
 canvas.addEventListener("pointermove", (e) => {
   if (!pointers.has(e.pointerId)) return;
