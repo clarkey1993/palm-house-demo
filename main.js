@@ -1,23 +1,24 @@
+import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=6a8a05d2f4a26606";
 import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=7a79f1e45bdf239f";
-import { mountFeedback } from "./feedback.js?v=7a79f1e45bdf239f";
-import { preloadFurniture } from "./furniture.js?v=7a79f1e45bdf239f";
+} from "./performance.js?v=6a8a05d2f4a26606";
+import { mountFeedback } from "./feedback.js?v=6a8a05d2f4a26606";
+import { preloadFurniture } from "./furniture.js?v=6a8a05d2f4a26606";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=7a79f1e45bdf239f";
-import { createSeaAmbience } from "./ambience.js?v=7a79f1e45bdf239f";
-import { createSoundEffects } from "./sound-effects.js?v=7a79f1e45bdf239f";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=7a79f1e45bdf239f";
-import { openingTask } from "./onboarding.js?v=7a79f1e45bdf239f";
-import { BUILD } from "./build-config.js?v=7a79f1e45bdf239f";
-import { BrowserSaveStore } from "./save-store.js?v=7a79f1e45bdf239f";
-import { PlaytestLog } from "./playtest.js?v=7a79f1e45bdf239f";
+} from "./restoration.js?v=6a8a05d2f4a26606";
+import { createSeaAmbience } from "./ambience.js?v=6a8a05d2f4a26606";
+import { createSoundEffects } from "./sound-effects.js?v=6a8a05d2f4a26606";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=6a8a05d2f4a26606";
+import { openingTask } from "./onboarding.js?v=6a8a05d2f4a26606";
+import { BUILD } from "./build-config.js?v=6a8a05d2f4a26606";
+import { BrowserSaveStore } from "./save-store.js?v=6a8a05d2f4a26606";
+import { PlaytestLog } from "./playtest.js?v=6a8a05d2f4a26606";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -25,7 +26,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=7a79f1e45bdf239f";
+} from "./opening.js?v=6a8a05d2f4a26606";
 import {
   createGame,
   update,
@@ -50,7 +51,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=7a79f1e45bdf239f";
+} from "./model.js?v=6a8a05d2f4a26606";
 import {
   createHotel,
   serializeHotel,
@@ -62,12 +63,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=7a79f1e45bdf239f";
-import { HotelView } from "./view.js?v=7a79f1e45bdf239f";
-import { RooftopView } from "./rooftop-view.js?v=7a79f1e45bdf239f";
-import { roofValue } from "./rooftop.js?v=7a79f1e45bdf239f";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=7a79f1e45bdf239f";
-import { parseSave, SaveConflictError } from "./saves.js?v=7a79f1e45bdf239f";
+} from "./hotel.js?v=6a8a05d2f4a26606";
+import { HotelView } from "./view.js?v=6a8a05d2f4a26606";
+import { RooftopView } from "./rooftop-view.js?v=6a8a05d2f4a26606";
+import { roofValue } from "./rooftop.js?v=6a8a05d2f4a26606";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=6a8a05d2f4a26606";
+import { parseSave, SaveConflictError } from "./saves.js?v=6a8a05d2f4a26606";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -862,7 +863,83 @@ function renderJourney() {
   }
 }
 
+function renderCampaign(list) {
+  const event = nextEvent(hotel);
+  const card = document.createElement("article");
+  card.className = "restoration-card";
+  const heading = document.createElement("h3");
+  heading.textContent =
+    "Your hotel campaign · " +
+    hotel.campaign.completed.length +
+    "/" +
+    CAMPAIGN.length;
+  card.append(heading);
+  const add = (text) => {
+    const p = document.createElement("p");
+    p.textContent = text;
+    card.append(p);
+  };
+  add(
+    "Six guest events, at your pace. No deadline, no failure penalty. Your staff’s service counts, and progress saves when you leave.",
+  );
+  if (event) {
+    const active = hotel.campaign.active === event.id;
+    const title = document.createElement("h3");
+    title.textContent = event.title;
+    card.append(title);
+    add(active ? event.tip : event.preparation);
+    for (const goal of event.goals)
+      add(
+        goal.label +
+          " · " +
+          (active ? hotel.campaign.progress[goal.key] || 0 : 0) +
+          "/" +
+          goal.target,
+      );
+    add(
+      "Service counts after you start. Reward: $" +
+        event.reward +
+        " · " +
+        (hotel.campaign.guided
+          ? "Opens " + event.unlock
+          : "Earn a campaign stamp; your existing access stays available."),
+    );
+    const button = document.createElement("button");
+    button.textContent = active
+      ? "Event in progress · return to your hotel"
+      : event.ready(hotel)
+        ? "Start guest event"
+        : "Prepare your hotel first";
+    button.disabled = !active && !event.ready(hotel);
+    button.onclick = () => {
+      if (!active && !startEvent(hotel)) return;
+      applyCampaign(hotel);
+      save();
+      $("#management").hidden = true;
+      pause(false);
+      hud();
+      notify(event.title + " · no time limit. Your team can help.");
+    };
+    card.append(button);
+  } else
+    add(
+      "All six campaign stamps earned. Enjoy your hotel and celebrate the grand opening in the chapters below.",
+    );
+  const trail = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.textContent = "Your event journey";
+  trail.append(summary);
+  for (const e of CAMPAIGN) {
+    const p = document.createElement("p");
+    p.textContent =
+      (hotel.campaign.completed.includes(e.id) ? "✓ " : "○ ") + e.title;
+    trail.append(p);
+  }
+  card.append(trail);
+  list.append(card);
+}
 function renderRestoration(list) {
+  renderCampaign(list);
   const intro = document.createElement("p");
   intro.textContent =
     "Restore your seaside escape, one chapter at a time. Work towards any goal now; celebrate chapters in order. Completed service counts never go backwards.";
@@ -891,6 +968,13 @@ function renderRestoration(list) {
         ? "Complete the previous chapter"
         : "Celebrate · +$" + c.reward;
     button.disabled = done || !restorationReady(hotel, c);
+    if (
+      !done &&
+      c.id === "opening" &&
+      hotel.campaign.guided &&
+      hotel.campaign.completed.length < CAMPAIGN.length
+    )
+      button.textContent = "Finish the six guest events to celebrate";
     button.onclick = () => {
       if (!finishRestoration(hotel, c.id)) return;
       save();
@@ -981,7 +1065,7 @@ $("#export-save").onclick = async () => {
   button.disabled = true;
   try {
     if (window.Capacitor?.getPlatform() === "ios") {
-      const { shareNativeBackup } = await import("./native-backup.js?v=7a79f1e45bdf239f");
+      const { shareNativeBackup } = await import("./native-backup.js?v=6a8a05d2f4a26606");
       const result = await shareNativeBackup(serializeHotel(hotel));
       $("#backup-feedback").textContent = result.completed
         ? "Backup exported. Keep it somewhere safe."
@@ -1349,6 +1433,7 @@ function hud() {
         (p) =>
           unlocked(s, p.i) &&
           !complete(s, p.i) &&
+          !s.campaignLocks?.[p.i] &&
           s.cash >= price(s, p.i) - s.paid[p.i],
       );
     title = next ? label(s, next.i) : "Save for your next upgrade";
@@ -1422,6 +1507,46 @@ function hud() {
       head = "YOUR NEXT LITTLE STEP";
     }
   }
+  if (!BUILD.openingDemo && openingComplete(hotel)) {
+    const event = nextEvent(hotel);
+    if (event) {
+      const active = hotel.campaign.active === event.id;
+      const goal = event.goals.find(
+        (g) => (hotel.campaign.progress[g.key] || 0) < g.target,
+      );
+      $("#chapter-line").textContent = active
+        ? event.title +
+          " · " +
+          (goal
+            ? (hotel.campaign.progress[goal.key] || 0) +
+              "/" +
+              goal.target +
+              " " +
+              goal.label.toLowerCase()
+            : "Complete")
+        : event.title +
+          " · " +
+          (event.ready(hotel) ? "Tap to start" : "View next goal");
+      if (event.ready(hotel) && !active)
+        $("#manage").classList.add("reward-ready");
+      if (game.active < 0 && game.cleanRoom < 0 && !s.wagesDue) {
+        title = event.title;
+        detail = active
+          ? (goal
+              ? goal.label +
+                " · " +
+                (hotel.campaign.progress[goal.key] || 0) +
+                "/" +
+                goal.target +
+                ". "
+              : "") + "Your team’s service counts. No time limit."
+          : event.ready(hotel)
+            ? "Hotel book → Journey → Start guest event. No time limit."
+            : event.preparation;
+        head = active ? "YOUR GUEST EVENT" : "YOUR NEXT CHAPTER";
+      }
+    }
+  }
   const nearbyUpgrade = PADS.map((p) => padPosition(s, p))
     .filter(
       (p) =>
@@ -1434,8 +1559,14 @@ function hud() {
     const i = nearbyUpgrade.i,
       remaining = Math.ceil(price(s, i) - s.paid[i]);
     title = label(s, i) + " · $" + remaining.toLocaleString();
-    detail = "Stand still on this pad to pay. " + (benefit(s, i) || "");
-    head = game.active === i ? "STAND STILL TO INVEST" : "NEARBY UPGRADE";
+    detail =
+      s.campaignLocks?.[i] ||
+      "Stand still on this pad to pay. " + (benefit(s, i) || "");
+    head = s.campaignLocks?.[i]
+      ? "SERVICE GOAL · NO MONEY TAKEN"
+      : game.active === i
+        ? "STAND STILL TO INVEST"
+        : "NEARBY UPGRADE";
     progress = (s.paid[i] / price(s, i)) * 100;
     icon = "↑";
   }
@@ -1672,7 +1803,14 @@ function frame(t) {
     }
     if (game !== hotel.floors[hotel.active]) arriveOnFloor();
     if (hotel.liftChoice) openLift();
-    for (const e of hotel.events) if (e.type === "notice") notify(e.text);
+    for (const e of hotel.events) {
+      if (e.type === "notice") notify(e.text);
+      if (e.type === "campaignComplete") {
+        save();
+        sound("build");
+        playtest.record("campaign", e.id);
+      }
+    }
     if (Math.hypot(input.x, input.z) > 0.05)
       playtest.record("step", "move", true);
     for (const e of game.events) {

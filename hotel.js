@@ -1,7 +1,13 @@
-import { RESTORATION } from "./restoration.js?v=7a79f1e45bdf239f";
-import { selectDecor } from "./decor.js?v=7a79f1e45bdf239f";
-import { ECONOMY } from "./economy.js?v=7a79f1e45bdf239f";
-import { createRooftop, updateRooftop } from "./rooftop.js?v=7a79f1e45bdf239f";
+import {
+  restoreCampaign,
+  serviceTotals,
+  advanceCampaign,
+  applyCampaign,
+} from "./campaign.js?v=6a8a05d2f4a26606";
+import { RESTORATION } from "./restoration.js?v=6a8a05d2f4a26606";
+import { selectDecor } from "./decor.js?v=6a8a05d2f4a26606";
+import { ECONOMY } from "./economy.js?v=6a8a05d2f4a26606";
+import { createRooftop, updateRooftop } from "./rooftop.js?v=6a8a05d2f4a26606";
 import {
   createGame,
   update,
@@ -12,7 +18,7 @@ import {
   RECEPTION,
   roomRoute,
   distance,
-} from "./model.js?v=7a79f1e45bdf239f";
+} from "./model.js?v=6a8a05d2f4a26606";
 
 // Demand follows built rooms accepting bookings across both floors.
 export function arrivalInterval(h, busy = false) {
@@ -28,7 +34,8 @@ export function arrivalInterval(h, busy = false) {
   const base = Math.max(4, 10 - (h.reputation - 50) / 15);
   return Math.max(
     busy ? 1.2 : 1.8,
-    (base / (1 + 0.32 * (rooms - 1))) * (busy ? 0.65 : 1),
+    (base / (1 + 0.32 * (rooms - 1))) *
+      (busy ? 0.65 : h.campaign?.active ? 0.85 : 1),
   );
 }
 
@@ -40,6 +47,7 @@ export function createHotel(saved) {
   ground.state.economy = true;
   if (!saved) ground.state.cash = ECONOMY.startingCash;
   const h = {
+    campaign: restoreCampaign(saved?.campaign, !!saved),
     decor: "palm",
     restoration: [],
     openingCelebrated: !!saved?.openingCelebrated,
@@ -108,6 +116,7 @@ export function createHotel(saved) {
       break;
     h.restoration.push(chapter.id);
   }
+  applyCampaign(h);
   selectDecor(h, saved?.decor);
   return h;
 }
@@ -128,6 +137,7 @@ export function serializeHotel(h) {
     rooftop: h.floors[2] ? serialize(h.floors[2]) : undefined,
     decor: h.decor,
     restoration: [...h.restoration],
+    campaign: structuredClone(h.campaign),
     openingCelebrated: h.openingCelebrated,
     claimed: [...h.claimed],
     easygoing: h.easygoing,
@@ -238,6 +248,8 @@ function react(h, g, v) {
 }
 export function updateHotel(h, dt, input = { x: 0, z: 0 }) {
   dt = Math.max(0, Math.min(0.05, dt));
+  const campaignBefore = serviceTotals(h);
+  applyCampaign(h);
   h.clock += dt;
   h.events = [];
   const cycle = h.clock % 240,
@@ -479,6 +491,8 @@ export function updateHotel(h, dt, input = { x: 0, z: 0 }) {
     g.state.cash = wallet;
     g.state.shoes = shoes;
   }
+  advanceCampaign(h, campaignBefore);
+  applyCampaign(h);
   const manager = h.floors[h.active].player;
   const liftDistance = distance(manager, LIFT);
   if (liftDistance > 1.6) h.liftReady = true;

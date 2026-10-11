@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=7a79f1e45bdf239f";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=7a79f1e45bdf239f";
-import { ECONOMY } from "./economy.js?v=7a79f1e45bdf239f";
-import { demoPadAllowed } from "./opening.js?v=7a79f1e45bdf239f";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=6a8a05d2f4a26606";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=6a8a05d2f4a26606";
+import { ECONOMY } from "./economy.js?v=6a8a05d2f4a26606";
+import { demoPadAllowed } from "./opening.js?v=6a8a05d2f4a26606";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -194,6 +194,7 @@ export const label = (s, i) => {
   ][i - 4];
 };
 export const benefit = (s, i) => {
+  if (s.campaignLocks?.[i]) return s.campaignLocks[i];
   if (s.floor === 1 && i === 19)
     return "Unlock two more room projects · upstairs capacity grows to eight";
   if (s.floor === 1 && roomForPad(i) >= 0)
@@ -1463,6 +1464,11 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
     g.active = -1;
     g.purchaseLatch = 10;
     g.events.push({ type: "demoBoundary" });
+    return;
+  }
+  if (pad && s.campaignLocks?.[pad.i]) {
+    g.payment = 0;
+    g.active = -1;
     return;
   }
   if (pad && s.cash > 0 && g.payment >= 0.055) {

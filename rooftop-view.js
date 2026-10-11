@@ -1,7 +1,7 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=7a79f1e45bdf239f";
-import * as T from "./vendor/three.module.js?v=7a79f1e45bdf239f";
-import { HotelView } from "./view.js?v=7a79f1e45bdf239f";
-import { PADS } from "./model.js?v=7a79f1e45bdf239f";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=6a8a05d2f4a26606";
+import * as T from "./vendor/three.module.js?v=6a8a05d2f4a26606";
+import { HotelView } from "./view.js?v=6a8a05d2f4a26606";
+import { PADS } from "./model.js?v=6a8a05d2f4a26606";
 export class RooftopView extends HotelView {
   makeWorld() {
     this.addSea();

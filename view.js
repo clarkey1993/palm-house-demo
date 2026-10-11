@@ -1,14 +1,14 @@
-import { performanceProfile, readSmoothPreference } from "./performance.js?v=7a79f1e45bdf239f";
-import { coverFloor, placeArchitecture } from "./architecture.js?v=7a79f1e45bdf239f";
-import { furniture } from "./furniture.js?v=7a79f1e45bdf239f";
+import { performanceProfile, readSmoothPreference } from "./performance.js?v=6a8a05d2f4a26606";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=6a8a05d2f4a26606";
+import { furniture } from "./furniture.js?v=6a8a05d2f4a26606";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=7a79f1e45bdf239f";
-import { DECOR } from "./decor.js?v=7a79f1e45bdf239f";
-import * as T from "./vendor/three.module.js?v=7a79f1e45bdf239f";
+} from "./animation.js?v=6a8a05d2f4a26606";
+import { DECOR } from "./decor.js?v=6a8a05d2f4a26606";
+import * as T from "./vendor/three.module.js?v=6a8a05d2f4a26606";
 import {
   ROOMS,
   cafeOffset,
@@ -30,7 +30,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=7a79f1e45bdf239f";
+} from "./model.js?v=6a8a05d2f4a26606";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -2410,7 +2410,11 @@ export class HotelView {
       this.drawPurchasePad(
         entry,
         preview ? "Beyond the lobby" : label(s, pad.i),
-        preview ? "Preview" : "$" + Math.ceil(price(s, pad.i) - s.paid[pad.i]),
+        preview
+          ? "Preview"
+          : s.campaignLocks?.[pad.i]
+            ? "SERVICE GOAL"
+            : "$" + Math.ceil(price(s, pad.i) - s.paid[pad.i]),
         preview ? 0 : s.paid[pad.i] / price(s, pad.i),
         detail,
         active,
@@ -2499,6 +2503,7 @@ export class HotelView {
           (a) =>
             unlocked(s, a.i) &&
             !complete(s, a.i) &&
+            !s.campaignLocks?.[a.i] &&
             s.cash >= price(s, a.i) - s.paid[a.i],
         );
       if (next) {

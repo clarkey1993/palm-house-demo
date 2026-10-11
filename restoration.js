@@ -113,6 +113,9 @@ export const nextRestoration = (h) =>
   RESTORATION.find((c) => !h.restoration.includes(c.id));
 export const restorationReady = (h, c) =>
   nextRestoration(h)?.id === c.id &&
+  (c.id !== "opening" ||
+    !h.campaign?.guided ||
+    h.campaign.completed.length === 6) &&
   c.goals.every((g) => g.value(h) >= g.target);
 export function finishRestoration(h, id) {
   const c = RESTORATION.find((c) => c.id === id);
