@@ -1,18 +1,23 @@
-import { mountFeedback } from "./feedback.js?v=c2a645c75fff610d";
-import { preloadFurniture } from "./furniture.js?v=c2a645c75fff610d";
+import {
+  FrameClock,
+  performanceProfile,
+  readSmoothPreference,
+} from "./performance.js?v=9b4bec301f4bac73";
+import { mountFeedback } from "./feedback.js?v=9b4bec301f4bac73";
+import { preloadFurniture } from "./furniture.js?v=9b4bec301f4bac73";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=c2a645c75fff610d";
-import { createSeaAmbience } from "./ambience.js?v=c2a645c75fff610d";
-import { createSoundEffects } from "./sound-effects.js?v=c2a645c75fff610d";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=c2a645c75fff610d";
-import { openingTask } from "./onboarding.js?v=c2a645c75fff610d";
-import { BUILD } from "./build-config.js?v=c2a645c75fff610d";
-import { BrowserSaveStore } from "./save-store.js?v=c2a645c75fff610d";
-import { PlaytestLog } from "./playtest.js?v=c2a645c75fff610d";
+} from "./restoration.js?v=9b4bec301f4bac73";
+import { createSeaAmbience } from "./ambience.js?v=9b4bec301f4bac73";
+import { createSoundEffects } from "./sound-effects.js?v=9b4bec301f4bac73";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=9b4bec301f4bac73";
+import { openingTask } from "./onboarding.js?v=9b4bec301f4bac73";
+import { BUILD } from "./build-config.js?v=9b4bec301f4bac73";
+import { BrowserSaveStore } from "./save-store.js?v=9b4bec301f4bac73";
+import { PlaytestLog } from "./playtest.js?v=9b4bec301f4bac73";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -20,7 +25,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=c2a645c75fff610d";
+} from "./opening.js?v=9b4bec301f4bac73";
 import {
   createGame,
   update,
@@ -45,7 +50,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=c2a645c75fff610d";
+} from "./model.js?v=9b4bec301f4bac73";
 import {
   createHotel,
   serializeHotel,
@@ -57,12 +62,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=c2a645c75fff610d";
-import { HotelView } from "./view.js?v=c2a645c75fff610d";
-import { RooftopView } from "./rooftop-view.js?v=c2a645c75fff610d";
-import { roofValue } from "./rooftop.js?v=c2a645c75fff610d";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=c2a645c75fff610d";
-import { parseSave, SaveConflictError } from "./saves.js?v=c2a645c75fff610d";
+} from "./hotel.js?v=9b4bec301f4bac73";
+import { HotelView } from "./view.js?v=9b4bec301f4bac73";
+import { RooftopView } from "./rooftop-view.js?v=9b4bec301f4bac73";
+import { roofValue } from "./rooftop.js?v=9b4bec301f4bac73";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=9b4bec301f4bac73";
+import { parseSave, SaveConflictError } from "./saves.js?v=9b4bec301f4bac73";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -175,7 +180,7 @@ let view,
   paused = false,
   keys = {},
   drag = null,
-  last = 0,
+  frameRequest = null,
   saveTime = 0,
   toastTime = 0,
   muted = true,
@@ -468,6 +473,7 @@ $("#ambience").onchange = () => {
 };
 function pause(v) {
   paused = v;
+  frameClock.reset();
   syncAudio();
   keys = {};
   release();
@@ -1566,6 +1572,10 @@ window.addEventListener("blur", () => {
   save();
 });
 document.addEventListener("visibilitychange", () => {
+  if (frameRequest != null) cancelAnimationFrame(frameRequest);
+  frameRequest = null;
+  frameClock.reset();
+  scheduleFrame();
   syncAudio();
   keys = {};
   release();
@@ -1577,9 +1587,32 @@ window.addEventListener("pagehide", () => {
   playtest.flush();
 });
 window.addEventListener("resize", () => view?.resize());
+const frameClock = new FrameClock();
+const touchDevice = window.matchMedia("(pointer: coarse)").matches;
+let smoothAnimation = readSmoothPreference();
+$("#smooth-animation").checked = smoothAnimation;
+$("#smooth-animation").onchange = () => {
+  smoothAnimation = $("#smooth-animation").checked;
+  try {
+    localStorage.setItem("palm-house-smooth", smoothAnimation ? "on" : "off");
+  } catch {}
+  frameClock.reset();
+  view?.resize();
+};
+function scheduleFrame() {
+  if (frameRequest == null && !document.hidden && view)
+    frameRequest = requestAnimationFrame(frame);
+}
 function frame(t) {
-  const dt = Math.min((t - last) / 1000, 0.04);
-  last = t;
+  frameRequest = null;
+  if (document.hidden) return;
+  scheduleFrame();
+  const fps =
+    paused || saveConflict
+      ? 4
+      : performanceProfile(touchDevice, smoothAnimation, 1, 1).fps;
+  const dt = frameClock.step(t, fps);
+  if (dt === null) return;
   syncAudio();
   if (!paused && !saveConflict && !document.hidden) {
     const input =
@@ -1706,7 +1739,7 @@ function frame(t) {
     view.setDecor(hotel.decor);
     view.render(dt);
   }
-  requestAnimationFrame(frame);
+  scheduleFrame();
 }
 try {
   await preloadFurniture();
@@ -1721,7 +1754,7 @@ try {
   if (recoveredSave) notify("Your backup restored your hotel safely.");
   else if (!saved) notify("Welcome to Palm House · $500 to make it yours.");
   if ((BUILD.openingDemo || BUILD.logging) && !saved) showWelcome();
-  requestAnimationFrame(frame);
+  scheduleFrame();
 } catch (error) {
   console.error(error);
   $("#loading h2").textContent = "Your hotel needs WebGL";

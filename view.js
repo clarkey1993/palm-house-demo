@@ -1,13 +1,14 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=c2a645c75fff610d";
-import { furniture } from "./furniture.js?v=c2a645c75fff610d";
+import { performanceProfile, readSmoothPreference } from "./performance.js?v=9b4bec301f4bac73";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=9b4bec301f4bac73";
+import { furniture } from "./furniture.js?v=9b4bec301f4bac73";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=c2a645c75fff610d";
-import { DECOR } from "./decor.js?v=c2a645c75fff610d";
-import * as T from "./vendor/three.module.js?v=c2a645c75fff610d";
+} from "./animation.js?v=9b4bec301f4bac73";
+import { DECOR } from "./decor.js?v=9b4bec301f4bac73";
+import * as T from "./vendor/three.module.js?v=9b4bec301f4bac73";
 import {
   ROOMS,
   cafeOffset,
@@ -29,7 +30,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=c2a645c75fff610d";
+} from "./model.js?v=9b4bec301f4bac73";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -50,9 +51,9 @@ export class HotelView {
       canvas,
       antialias: true,
       alpha: false,
-      powerPreference: "high-performance",
+      powerPreference: "default",
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    this.touchDevice = window.matchMedia("(pointer: coarse)").matches;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = T.PCFSoftShadowMap;
     this.renderer.outputColorSpace = T.SRGBColorSpace;
@@ -60,7 +61,7 @@ export class HotelView {
     this.renderer.toneMappingExposure = 1.08;
     // A transparent player-only pass sits above the fixed HTML price cards.
     this.playerOverlay = new T.WebGLRenderer({ antialias: true, alpha: true });
-    this.playerOverlay.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
     this.playerOverlay.outputColorSpace = this.renderer.outputColorSpace;
     this.playerOverlay.toneMapping = this.renderer.toneMapping;
     this.playerOverlay.toneMappingExposure = this.renderer.toneMappingExposure;
@@ -109,7 +110,7 @@ export class HotelView {
     const sun = new T.DirectionalLight(0xffedce, 2.5);
     sun.position.set(-16, 32, 17);
     sun.castShadow = true;
-    const shadowSize = window.innerWidth < 650 ? 1024 : 2048;
+    const shadowSize = this.touchDevice ? 1024 : 2048;
     sun.shadow.mapSize.set(shadowSize, shadowSize);
     Object.assign(sun.shadow.camera, {
       left: -25,
@@ -1877,6 +1878,15 @@ export class HotelView {
   resize() {
     this.width = this.canvas.clientWidth;
     this.height = this.canvas.clientHeight;
+    const profile = performanceProfile(
+      this.touchDevice,
+      readSmoothPreference(),
+      this.width,
+      this.height,
+      window.devicePixelRatio || 1,
+    );
+    this.renderer.setPixelRatio(profile.pixelRatio);
+    this.playerOverlay.setPixelRatio(profile.pixelRatio);
     this.renderer.setSize(this.width, this.height, false);
     this.playerOverlay.setSize(this.width, this.height, false);
     this.aspect = this.width / this.height;
