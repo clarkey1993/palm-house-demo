@@ -1,13 +1,13 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=9feefc9561df0e0f";
-import { furniture } from "./furniture.js?v=9feefc9561df0e0f";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=2328ec85887a3c56";
+import { furniture } from "./furniture.js?v=2328ec85887a3c56";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=9feefc9561df0e0f";
-import { DECOR } from "./decor.js?v=9feefc9561df0e0f";
-import * as T from "./vendor/three.module.js?v=9feefc9561df0e0f";
+} from "./animation.js?v=2328ec85887a3c56";
+import { DECOR } from "./decor.js?v=2328ec85887a3c56";
+import * as T from "./vendor/three.module.js?v=2328ec85887a3c56";
 import {
   ROOMS,
   cafeOffset,
@@ -29,7 +29,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=9feefc9561df0e0f";
+} from "./model.js?v=2328ec85887a3c56";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -1828,6 +1828,24 @@ export class HotelView {
       this.cyl(0.1, 0.1, 0.012, 0x805536, -0.37, 1.16, 0.28, cup);
       cup.visible = false;
       g.userData.cup = cup;
+      const refreshment = new T.Group();
+      this.cyl(0.115, 0.085, 0.26, 0xeeb45d, -0.37, 1.06, 0.28, refreshment);
+      this.cyl(0.012, 0.012, 0.28, 0xfff3dd, -0.34, 1.26, 0.28, refreshment);
+      this.sphere(0.055, 0x8cba74, -0.47, 1.2, 0.28, refreshment);
+      refreshment.visible = false;
+      g.add(refreshment);
+      g.userData.refreshment = refreshment;
+      const pastry = new T.Group();
+      this.cyl(0.19, 0.19, 0.025, 0xfff2d7, 0, 0, 0, pastry);
+      const bread = new T.Group();
+      pastry.add(bread);
+      this.round(0.23, 0.12, 0.14, 0xd9a05b, 0, 0.065, 0, bread, 0.055);
+      for (const x of [-0.065, 0, 0.065])
+        this.box(0.014, 0.01, 0.1, 0xf5d09a, x, 0.13, 0, bread);
+      pastry.userData.bread = bread;
+      pastry.visible = false;
+      g.add(pastry);
+      g.userData.pastry = pastry;
       const float = this.mesh(
         new T.TorusGeometry(0.48, 0.13, 8, 24),
         0xf1c36e,
@@ -2262,6 +2280,8 @@ export class HotelView {
       a.userData.cup.position.set(0, 0, 0);
       a.userData.cup.rotation.x = 0;
       a.userData.menu.visible = guest.phase === "restaurant";
+      a.userData.refreshment.visible = false;
+      a.userData.pastry.visible = false;
       a.userData.float.visible = false;
       a.userData.legs.forEach((l) => (l.visible = true));
       a.userData.shoes.forEach((l) => (l.visible = true));
@@ -2308,6 +2328,7 @@ export class HotelView {
         a.userData.cup.rotation.x = -0.2 * sip;
         a.userData.arms[0].rotation.x = -0.8 - sip * 0.4;
       }
+      this.counterPose(a, guest);
     }
     for (const [id, a] of this.actorMap)
       if (!ids.has(id)) {
@@ -2540,6 +2561,37 @@ export class HotelView {
     this.renderer.dispose();
     this.playerOverlay.dispose();
     document.querySelector("#labels").replaceChildren();
+  }
+  counterPose(actor, guest) {
+    const bar = ["pool", "roofDrink"].includes(guest.phase) && !guest.moving;
+    const breakfast = guest.phase === "cafe" && !guest.moving;
+    const drink = actor.userData.refreshment;
+    const pastry = actor.userData.pastry;
+    drink.visible = bar;
+    pastry.visible = breakfast;
+    if (bar) {
+      actor.rotation.y = guest.phase === "pool" ? 0 : Math.PI;
+      // The same hand motion works for a tall drink without displaying a coffee cup inside it.
+      drink.position.copy(actor.userData.cup.position);
+      drink.rotation.copy(actor.userData.cup.rotation);
+      actor.userData.cup.visible = false;
+      actor.userData.elbows[0].rotation.x = -0.45;
+    }
+    if (breakfast) {
+      actor.rotation.y = Math.PI;
+      const bite = this.reducedMotion
+        ? 0
+        : Math.pow(
+            Math.max(0, Math.sin(this.game.time * 2 + guest.id + Math.PI)),
+            4,
+          );
+      pastry.position.set(0.34, 0.9 + bite * 0.32, 0.38 - bite * 0.12);
+      pastry.userData.bread.scale.setScalar(
+        Math.max(0.15, Math.min(1, guest.timer / 3.8)),
+      );
+      actor.userData.arms[1].rotation.x = -0.7 - bite * 0.45;
+      actor.userData.elbows[1].rotation.x = -0.35 - bite * 0.4;
+    }
   }
   receptionPose(actor, working, welcoming) {
     const tap = this.reducedMotion ? 0 : Math.sin(this.game.time * 9);
