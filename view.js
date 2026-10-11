@@ -1,14 +1,15 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=13b0fb40d9189ad2";
-import { furniture } from "./furniture.js?v=13b0fb40d9189ad2";
-import { stepMotion, motionPose } from "./animation.js?v=13b0fb40d9189ad2";
-import { DECOR } from "./decor.js?v=13b0fb40d9189ad2";
-import * as T from "./vendor/three.module.js?v=13b0fb40d9189ad2";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=e77c5804966c239b";
+import { furniture } from "./furniture.js?v=e77c5804966c239b";
+import { stepMotion, motionPose } from "./animation.js?v=e77c5804966c239b";
+import { DECOR } from "./decor.js?v=e77c5804966c239b";
+import * as T from "./vendor/three.module.js?v=e77c5804966c239b";
 import {
   ROOMS,
   cafeOffset,
   benefit,
   CLEAN_SPOTS,
   roomCount,
+  roomForPad,
   roomRate,
   unlocked,
   staffCount,
@@ -23,7 +24,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=13b0fb40d9189ad2";
+} from "./model.js?v=e77c5804966c239b";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -1903,6 +1904,9 @@ export class HotelView {
   event(e) {
     if (e.type === "build") {
       this.rebuild();
+      const room = roomForPad(e.i);
+      if (room >= 0 && this.roomGroups[room] && !this.reducedMotion)
+        this.roomGroups[room].userData.reveal = 0.65;
       const palette = [0xf4c569, 0xfff5d5, 0x76b69b, 0xe69c7d];
       for (let i = 0; i < (this.reducedMotion ? 0 : 22); i++) {
         const m = this.box(0.12, 0.07, 0.16, palette[i % 4], e.x, 0.4, e.z);
@@ -2046,7 +2050,7 @@ export class HotelView {
     });
     if (g.cleanRoom >= 0) this.cleaningPose(this.player);
     this.player.userData.mop.visible = g.cleanRoom >= 0;
-    this.player.userData.mop.rotation.y = Math.sin(g.time * 10) * 0.4;
+
     this.receptionActors?.forEach((actor, i) => {
       this.animateActor(actor, { moving: false, angle: actor.rotation.y }, dt);
       const working =
@@ -2068,10 +2072,10 @@ export class HotelView {
       if (worker.phase === "clean" && onDuty(s)) this.cleaningPose(a);
 
       a.userData.mop.visible = true;
-      a.userData.mop.rotation.y =
-        worker.phase === "clean" && onDuty(s)
-          ? Math.sin(g.time * 10 * workRate(s)) * 0.4
-          : 0;
+      if (worker.phase !== "clean" || !onDuty(s)) {
+        a.userData.mop.rotation.y = 0;
+        a.userData.mop.position.z = 0.3;
+      }
     });
     this.runnerActors.forEach((a, i) => {
       const runner = g.runners[i];
@@ -2087,7 +2091,23 @@ export class HotelView {
     this.roomMess.forEach((a, i) => {
       a.group.visible = s.dirty[i];
       a.ring.visible = s.dirty[i];
-      a.ring.material.color.setHex(g.cleanRoom === i ? 0x64b988 : 0xd99948);
+      const progress = s.cleaning[i] || 0;
+      a.group.children.forEach((piece, index) => {
+        // Clear individual towels and dust patches as the job advances.
+        const remaining = Math.max(
+          0,
+          Math.min(1, (1 - progress) * a.group.children.length - index),
+        );
+        piece.visible = remaining > 0;
+        piece.scale.setScalar(0.3 + remaining * 0.7);
+      });
+      const working =
+        g.cleanRoom === i ||
+        g.cleaners.some(
+          (worker) =>
+            worker.room === i && worker.phase === "clean" && onDuty(s),
+        );
+      a.ring.material.color.setHex(working ? 0x64b988 : 0xd99948);
     });
     if (this.player.userData.arrow)
       this.player.userData.arrow.position.y = 2.35 + Math.sin(g.time * 3) * 0.1;
@@ -2115,11 +2135,20 @@ export class HotelView {
       );
       const dx = target.x - actor.position.x,
         dz = target.z - actor.position.z;
-      actor.position.lerp(target, Math.min(1, dt * 2));
-      actor.rotation.y = Math.atan2(dx, dz);
+      const distance = Math.hypot(dx, dz);
+      const step = Math.min(distance, dt * 3.6 * workRate(s));
+      if (distance > 0.01) {
+        actor.position.x += (dx / distance) * step;
+        actor.position.z += (dz / distance) * step;
+        actor.rotation.y = Math.atan2(dx, dz);
+      }
       this.animateActor(actor, { moving: Math.hypot(dx, dz) > 0.1 }, dt);
       actor.userData.cup.visible = false;
       actor.userData.servingTray.visible = !!guest;
+      actor.userData.servingTray.rotation.x = -actor.rotation.x;
+      actor.userData.elbows.forEach(
+        (elbow) => (elbow.rotation.x = guest ? -0.45 : 0),
+      );
       actor.userData.arms.forEach((arm, index) => {
         arm.rotation.x = guest
           ? -0.8 + (index ? 0 : Math.sin(g.time * 4) * 0.08)
@@ -2189,7 +2218,17 @@ export class HotelView {
         );
         a.userData.luggage.visible = false;
       }
-      if (coffee) {
+      if (["restaurant", "restaurantEating"].includes(guest.phase)) {
+        // Guests occupy the near chair and face their table.
+        a.rotation.set(0, Math.PI, 0);
+        a.position.y = 0.12;
+        a.userData.legs.forEach((leg) => (leg.rotation.x = -Math.PI / 2));
+        a.userData.knees.forEach((knee) => (knee.rotation.x = Math.PI / 2));
+        a.userData.arms.forEach((arm) => (arm.rotation.x = -0.65));
+        a.userData.elbows.forEach((elbow) => (elbow.rotation.x = -0.45));
+        a.userData.cup.visible = guest.phase === "restaurantEating";
+      }
+      if (coffee && a.userData.cup.visible) {
         const sip = Math.pow(Math.max(0, Math.sin(g.time * 1.4 + guest.id)), 4);
         a.userData.cup.position.y = 0.04 + sip * 0.3;
         a.userData.cup.position.z = sip * 0.06;
@@ -2272,6 +2311,15 @@ export class HotelView {
         detail,
         active,
       );
+    }
+    for (const room of this.roomGroups) {
+      if (room.userData.reveal > 0) {
+        room.userData.reveal = Math.max(0, room.userData.reveal - dt);
+        const progress = 1 - room.userData.reveal / 0.65;
+        room.scale.y = this.reducedMotion
+          ? 1
+          : 1 - 0.18 * Math.pow(1 - progress, 3);
+      }
     }
     for (const e of this.effects) {
       e.life -= dt;
@@ -2421,13 +2469,18 @@ export class HotelView {
     document.querySelector("#labels").replaceChildren();
   }
   cleaningPose(actor) {
-    const scrub = Math.sin(this.game.time * 7);
-    actor.userData.arms.forEach(
-      (arm, i) => (arm.rotation.x = -0.55 + scrub * (i ? 0.1 : 0.22)),
+    const phase = this.game.time * 6 * workRate(this.game.state);
+    const scrub = this.reducedMotion ? 0 : Math.sin(phase);
+    actor.userData.arms.forEach((arm, i) => {
+      arm.rotation.x = -0.65 + scrub * (i ? 0.12 : 0.28);
+    });
+    actor.position.y = this.reducedMotion ? 0 : 0.015 * (1 + scrub);
+    actor.rotation.x = 0.08 + scrub * 0.025;
+    actor.userData.elbows.forEach(
+      (elbow) => (elbow.rotation.x = -0.3 - scrub * 0.08),
     );
-    actor.position.y = this.reducedMotion ? 0 : 0.012 * (1 + scrub);
-    actor.rotation.x = 0.1;
-    actor.userData.elbows?.forEach((elbow) => (elbow.rotation.x = -0.2));
+    actor.userData.mop.rotation.y = scrub * 0.25;
+    actor.userData.mop.position.z = 0.3 + scrub * 0.18;
   }
   animateActor(a, v, dt = 0.016) {
     const state = stepMotion(
