@@ -1,24 +1,24 @@
-import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=0a0346235cd14b54";
+import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=1ecb862b7b9ddad2";
 import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=0a0346235cd14b54";
-import { mountFeedback } from "./feedback.js?v=0a0346235cd14b54";
-import { preloadFurniture } from "./furniture.js?v=0a0346235cd14b54";
+} from "./performance.js?v=1ecb862b7b9ddad2";
+import { mountFeedback } from "./feedback.js?v=1ecb862b7b9ddad2";
+import { preloadFurniture } from "./furniture.js?v=1ecb862b7b9ddad2";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=0a0346235cd14b54";
-import { createSeaAmbience } from "./ambience.js?v=0a0346235cd14b54";
-import { createSoundEffects } from "./sound-effects.js?v=0a0346235cd14b54";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=0a0346235cd14b54";
-import { openingTask } from "./onboarding.js?v=0a0346235cd14b54";
-import { BUILD } from "./build-config.js?v=0a0346235cd14b54";
-import { BrowserSaveStore } from "./save-store.js?v=0a0346235cd14b54";
-import { PlaytestLog } from "./playtest.js?v=0a0346235cd14b54";
+} from "./restoration.js?v=1ecb862b7b9ddad2";
+import { createSeaAmbience } from "./ambience.js?v=1ecb862b7b9ddad2";
+import { createSoundEffects } from "./sound-effects.js?v=1ecb862b7b9ddad2";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=1ecb862b7b9ddad2";
+import { openingTask } from "./onboarding.js?v=1ecb862b7b9ddad2";
+import { BUILD } from "./build-config.js?v=1ecb862b7b9ddad2";
+import { BrowserSaveStore } from "./save-store.js?v=1ecb862b7b9ddad2";
+import { PlaytestLog } from "./playtest.js?v=1ecb862b7b9ddad2";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -26,7 +26,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=0a0346235cd14b54";
+} from "./opening.js?v=1ecb862b7b9ddad2";
 import {
   createGame,
   update,
@@ -51,7 +51,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=0a0346235cd14b54";
+} from "./model.js?v=1ecb862b7b9ddad2";
 import {
   createHotel,
   serializeHotel,
@@ -64,12 +64,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=0a0346235cd14b54";
-import { HotelView } from "./view.js?v=0a0346235cd14b54";
-import { RooftopView } from "./rooftop-view.js?v=0a0346235cd14b54";
-import { roofValue } from "./rooftop.js?v=0a0346235cd14b54";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=0a0346235cd14b54";
-import { parseSave, SaveConflictError } from "./saves.js?v=0a0346235cd14b54";
+} from "./hotel.js?v=1ecb862b7b9ddad2";
+import { HotelView } from "./view.js?v=1ecb862b7b9ddad2";
+import { RooftopView } from "./rooftop-view.js?v=1ecb862b7b9ddad2";
+import { roofValue } from "./rooftop.js?v=1ecb862b7b9ddad2";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=1ecb862b7b9ddad2";
+import { parseSave, SaveConflictError } from "./saves.js?v=1ecb862b7b9ddad2";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -77,7 +77,16 @@ const storage = {
   setItem: (key, value) => localStorage.setItem(key, value),
   removeItem: (key) => localStorage.removeItem(key),
 };
-const saveStore = new BrowserSaveStore(storage, BUILD.namespace);
+let saveStore = new BrowserSaveStore(storage, BUILD.namespace);
+const nativeStorage = window.Capacitor?.getPlatform() === "ios";
+let nativeInactive = false;
+let savePending = Promise.resolve(),
+  replacingHotel = false;
+function queueSave(operation) {
+  const result = savePending.then(operation);
+  savePending = result.catch(() => {});
+  return result;
+}
 const playtest = new PlaytestLog(
   storage,
   (BUILD.namespace || "prototype") + ":playtest",
@@ -90,12 +99,22 @@ let saved,
   recoveredSave = false;
 try {
   if (document.body.dataset.hotelPreview !== "true") {
-    const loaded = saveStore.load();
+    if (nativeStorage) {
+      const { createNativeSaveStore } = await import("./native-save-store.js?v=1ecb862b7b9ddad2");
+      saveStore = await createNativeSaveStore(saveStore);
+    }
+    const loaded = await saveStore.load();
     lastSavedRaw = saveStore.raw();
     saved = loaded.value;
     recoveredSave = loaded.recovered;
   }
-} catch {}
+} catch (error) {
+  if (nativeStorage) {
+    $("#loading").textContent =
+      "Your hotel could not be opened safely. Your saved files have been kept. Close and reopen Palm House to retry.";
+    throw error;
+  }
+}
 // Keep touch controls above the actual task panel, including wrapped upgrade details.
 const footerLayout = new ResizeObserver(() => {
   const footer = document.querySelector("footer");
@@ -214,7 +233,8 @@ function unlockAudio() {
 }
 function syncAudio() {
   if (!audio) return;
-  const active = !muted && !paused && !saveConflict && !document.hidden;
+  const active =
+    !muted && !paused && !saveConflict && !document.hidden && !nativeInactive;
   seaAudio?.setEnabled(active && ambienceEnabled);
   soundEffects?.setEnabled(active);
   if (active === audioActive) return;
@@ -227,19 +247,39 @@ window.addEventListener("pointerdown", unlockAudio);
 window.addEventListener("keydown", unlockAudio);
 
 function save() {
-  if (preview || saveConflict) return;
-  try {
-    lastSavedRaw = saveStore.write(serializeHotel(hotel), lastSavedRaw);
-    $("#save-status").textContent = "Progress saves on this device";
-  } catch (error) {
+  if (preview || saveConflict || replacingHotel) return;
+  const value = nativeStorage
+    ? structuredClone(serializeHotel(hotel))
+    : serializeHotel(hotel);
+  const failed = (error) => {
     if (error instanceof SaveConflictError) {
       showSaveConflict();
       return;
     }
     $("#save-status").textContent =
       "Saving unavailable · export a backup in Settings";
+  };
+  if (!nativeStorage) {
+    // Browser lifecycle saves stay synchronous, including pagehide.
+    try {
+      lastSavedRaw = saveStore.write(value, lastSavedRaw);
+      $("#save-status").textContent = "Progress saves on this device";
+    } catch (error) {
+      failed(error);
+    }
+    return;
   }
+  return queueSave(async () => {
+    if (saveConflict) return;
+    try {
+      lastSavedRaw = await saveStore.write(value, lastSavedRaw);
+      $("#save-status").textContent = "Progress saved on this device";
+    } catch (error) {
+      failed(error);
+    }
+  });
 }
+
 function showSaveConflict() {
   if (saveConflict) return;
   saveConflict = true;
@@ -1026,15 +1066,19 @@ $("#cancel-restart").onclick = () => {
   $("#restart-confirmation").hidden = true;
   $("#restart-hotel").focus();
 };
-$("#confirm-restart").onclick = () => {
+$("#confirm-restart").onclick = async () => {
+  if (replacingHotel) return;
+  replacingHotel = true;
   try {
     const fresh = applyOpeningPolicy(createHotel(), BUILD.openingDemo);
     if (!preview)
-      lastSavedRaw = saveStore.restart(
-        serializeHotel(fresh),
-        serializeHotel(hotel),
-        lastSavedRaw,
-      );
+      await queueSave(async () => {
+        lastSavedRaw = await saveStore.restart(
+          serializeHotel(fresh),
+          serializeHotel(hotel),
+          lastSavedRaw,
+        );
+      });
     hotel = fresh;
     seenDecor.clear();
     seenDecor.add("palm");
@@ -1054,6 +1098,8 @@ $("#confirm-restart").onclick = () => {
     $("#restart-feedback").textContent =
       "Could not safely start again. Your current hotel has been kept. Download a backup and try again.";
     if (error instanceof SaveConflictError) showSaveConflict();
+  } finally {
+    replacingHotel = false;
   }
 };
 
@@ -1066,7 +1112,7 @@ $("#export-save").onclick = async () => {
   button.disabled = true;
   try {
     if (window.Capacitor?.getPlatform() === "ios") {
-      const { shareNativeBackup } = await import("./native-backup.js?v=0a0346235cd14b54");
+      const { shareNativeBackup } = await import("./native-backup.js?v=1ecb862b7b9ddad2");
       const result = await shareNativeBackup(serializeHotel(hotel));
       $("#backup-feedback").textContent = result.completed
         ? "Backup exported. Keep it somewhere safe."
@@ -1111,16 +1157,22 @@ $("#save-file").onchange = async () => {
     : "This file is not a supported Palm House backup. Your hotel has not changed.";
   $("#confirm-restore").hidden = !pendingRestore;
 };
-$("#confirm-restore").onclick = () => {
-  if (!pendingRestore) return;
+$("#confirm-restore").onclick = async () => {
+  if (!pendingRestore || replacingHotel) return;
+  replacingHotel = true;
   try {
-    if (!preview) saveStore.preserve(serializeHotel(hotel));
     const restored = applyOpeningPolicy(
       createHotel(pendingRestore),
       BUILD.openingDemo,
     );
     if (!preview)
-      lastSavedRaw = saveStore.write(serializeHotel(restored), lastSavedRaw);
+      await queueSave(async () => {
+        await saveStore.preserve(serializeHotel(hotel));
+        lastSavedRaw = await saveStore.write(
+          serializeHotel(restored),
+          lastSavedRaw,
+        );
+      });
     hotel = restored;
     playtest.record("restore", "backup");
     pendingRestore = null;
@@ -1132,6 +1184,8 @@ $("#confirm-restore").onclick = () => {
   } catch {
     $("#backup-feedback").textContent =
       "Could not restore safely. Please keep your backup file.";
+  } finally {
+    replacingHotel = false;
   }
 };
 function openLift() {
@@ -1760,6 +1814,24 @@ window.addEventListener("pagehide", () => {
 });
 window.addEventListener("resize", () => view?.resize());
 const frameClock = new FrameClock();
+window.addEventListener("palm-house-background", () => {
+  if (!nativeStorage) return;
+  nativeInactive = true;
+  if (frameRequest != null) cancelAnimationFrame(frameRequest);
+  frameRequest = null;
+  keys = {};
+  release();
+  frameClock.reset();
+  syncAudio();
+  save();
+});
+window.addEventListener("palm-house-foreground", () => {
+  if (!nativeStorage) return;
+  nativeInactive = false;
+  frameClock.reset();
+  syncAudio();
+  scheduleFrame();
+});
 const touchDevice = window.matchMedia("(pointer: coarse)").matches;
 let smoothAnimation = readSmoothPreference();
 $("#smooth-animation").checked = smoothAnimation;
@@ -1772,12 +1844,12 @@ $("#smooth-animation").onchange = () => {
   view?.resize();
 };
 function scheduleFrame() {
-  if (frameRequest == null && !document.hidden && view)
+  if (frameRequest == null && !document.hidden && !nativeInactive && view)
     frameRequest = requestAnimationFrame(frame);
 }
 function frame(t) {
   frameRequest = null;
-  if (document.hidden) return;
+  if (document.hidden || nativeInactive) return;
   scheduleFrame();
   const fps =
     paused || saveConflict
@@ -1786,7 +1858,7 @@ function frame(t) {
   const dt = frameClock.step(t, fps);
   if (dt === null) return;
   syncAudio();
-  if (!paused && !saveConflict && !document.hidden) {
+  if (!paused && !saveConflict && !document.hidden && !nativeInactive) {
     const input =
       drag?.mode === "move"
         ? { x: drag.dx, z: drag.dz }

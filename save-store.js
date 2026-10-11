@@ -1,7 +1,7 @@
-import { loadSave, writeSave, SAVE_KEY, SaveConflictError } from "./saves.js?v=0a0346235cd14b54";
+import { loadSave, writeSave, SAVE_KEY, SaveConflictError } from "./saves.js?v=1ecb862b7b9ddad2";
 
 // SaveStore contract: load(), raw(), write(value, expectedRaw), preserve(value).
-// Native atomic-file storage is a later device-validation milestone.
+// The native implementation uses this browser store only for one-time migration.
 export class BrowserSaveStore {
   constructor(storage, namespace = "") {
     this.storage = storage;
