@@ -1,7 +1,7 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=3dabe0fd3180ef13";
-import * as T from "./vendor/three.module.js?v=3dabe0fd3180ef13";
-import { HotelView } from "./view.js?v=3dabe0fd3180ef13";
-import { PADS } from "./model.js?v=3dabe0fd3180ef13";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=91878ba185362362";
+import * as T from "./vendor/three.module.js?v=91878ba185362362";
+import { HotelView } from "./view.js?v=91878ba185362362";
+import { PADS } from "./model.js?v=91878ba185362362";
 export class RooftopView extends HotelView {
   makeWorld() {
     this.addSea();
@@ -255,6 +255,7 @@ export class RooftopView extends HotelView {
     }
     super.render(dt);
     if (this.roofFloat)
-      this.roofFloat.position.y = 0.76 + Math.sin(this.game.time * 1.5) * 0.06;
+      this.roofFloat.position.y =
+        0.76 + (this.reducedMotion ? 0 : Math.sin(this.game.time * 1.5) * 0.06);
   }
 }

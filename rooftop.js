@@ -7,7 +7,7 @@ import {
   payroll,
   onDuty,
   moveRate,
-} from "./model.js?v=3dabe0fd3180ef13";
+} from "./model.js?v=91878ba185362362";
 export const ROOF_LIFT = { x: 3.2, z: 12.8 };
 export const ROOF_CASH = { x: 1.7, z: 5.5 };
 export const roofValue = (s) =>
@@ -96,9 +96,24 @@ export function updateRooftop(g, dt, input = { x: 0, z: 0 }) {
         v.timer = 5;
       }
     } else if (v.phase === "roofDrink" || v.phase === "roofSpa") {
+      if (v.phase === "roofSpa" && v.spaSlot === undefined)
+        v.spaSlot = [0, 1].find(
+          (slot) =>
+            !g.guests.some(
+              (other) =>
+                other !== v &&
+                other.phase === "roofSpa" &&
+                other.spaSlot === slot,
+            ),
+        );
+      const waitingForSpa = v.phase === "roofSpa" && v.spaSlot === undefined;
       const at =
-        v.phase === "roofDrink" ? { x: 6.7, z: -7.8 } : { x: 6.7, z: 1 };
-      if (walk(v, at, dt)) v.timer -= dt;
+        v.phase === "roofDrink"
+          ? { x: 5.7 + (v.id % 3) * 0.85, z: -7.8 }
+          : waitingForSpa
+            ? { x: 9.5, z: 2.5 }
+            : { x: 6 + v.spaSlot * 2, z: 1 };
+      if (walk(v, at, dt) && !waitingForSpa) v.timer -= dt;
       if (v.timer <= 0) {
         v.phase = v.phase === "roofDrink" && s.roofSpa ? "roofSpa" : "roofPay";
         v.timer = 6;

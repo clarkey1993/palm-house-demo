@@ -1,17 +1,17 @@
-import { mountFeedback } from "./feedback.js?v=3dabe0fd3180ef13";
-import { preloadFurniture } from "./furniture.js?v=3dabe0fd3180ef13";
+import { mountFeedback } from "./feedback.js?v=91878ba185362362";
+import { preloadFurniture } from "./furniture.js?v=91878ba185362362";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=3dabe0fd3180ef13";
-import { createSeaAmbience } from "./ambience.js?v=3dabe0fd3180ef13";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=3dabe0fd3180ef13";
-import { openingTask } from "./onboarding.js?v=3dabe0fd3180ef13";
-import { BUILD } from "./build-config.js?v=3dabe0fd3180ef13";
-import { BrowserSaveStore } from "./save-store.js?v=3dabe0fd3180ef13";
-import { PlaytestLog } from "./playtest.js?v=3dabe0fd3180ef13";
+} from "./restoration.js?v=91878ba185362362";
+import { createSeaAmbience } from "./ambience.js?v=91878ba185362362";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=91878ba185362362";
+import { openingTask } from "./onboarding.js?v=91878ba185362362";
+import { BUILD } from "./build-config.js?v=91878ba185362362";
+import { BrowserSaveStore } from "./save-store.js?v=91878ba185362362";
+import { PlaytestLog } from "./playtest.js?v=91878ba185362362";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -19,7 +19,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=3dabe0fd3180ef13";
+} from "./opening.js?v=91878ba185362362";
 import {
   createGame,
   update,
@@ -44,7 +44,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=3dabe0fd3180ef13";
+} from "./model.js?v=91878ba185362362";
 import {
   createHotel,
   serializeHotel,
@@ -56,12 +56,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=3dabe0fd3180ef13";
-import { HotelView } from "./view.js?v=3dabe0fd3180ef13";
-import { RooftopView } from "./rooftop-view.js?v=3dabe0fd3180ef13";
-import { roofValue } from "./rooftop.js?v=3dabe0fd3180ef13";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=3dabe0fd3180ef13";
-import { parseSave, SaveConflictError } from "./saves.js?v=3dabe0fd3180ef13";
+} from "./hotel.js?v=91878ba185362362";
+import { HotelView } from "./view.js?v=91878ba185362362";
+import { RooftopView } from "./rooftop-view.js?v=91878ba185362362";
+import { roofValue } from "./rooftop.js?v=91878ba185362362";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=91878ba185362362";
+import { parseSave, SaveConflictError } from "./saves.js?v=91878ba185362362";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {

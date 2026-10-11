@@ -1,13 +1,13 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=3dabe0fd3180ef13";
-import { furniture } from "./furniture.js?v=3dabe0fd3180ef13";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=91878ba185362362";
+import { furniture } from "./furniture.js?v=91878ba185362362";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=3dabe0fd3180ef13";
-import { DECOR } from "./decor.js?v=3dabe0fd3180ef13";
-import * as T from "./vendor/three.module.js?v=3dabe0fd3180ef13";
+} from "./animation.js?v=91878ba185362362";
+import { DECOR } from "./decor.js?v=91878ba185362362";
+import * as T from "./vendor/three.module.js?v=91878ba185362362";
 import {
   ROOMS,
   cafeOffset,
@@ -29,7 +29,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=3dabe0fd3180ef13";
+} from "./model.js?v=91878ba185362362";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -2237,13 +2237,23 @@ export class HotelView {
         "toLift",
         "fromLift",
       ].includes(guest.phase);
-      a.userData.cup.visible = coffee;
+      a.userData.cup.visible = coffee && !guest.moving;
+      a.userData.cup.position.set(0, 0, 0);
+      a.userData.cup.rotation.x = 0;
       a.userData.menu.visible = guest.phase === "restaurant";
       a.userData.float.visible = false;
       a.userData.legs.forEach((l) => (l.visible = true));
       a.userData.shoes.forEach((l) => (l.visible = true));
       if (guest.phase === "roofSwim") {
-        a.position.y = -0.15 + Math.sin(g.time * 2 + guest.id) * 0.04;
+        const stroke = this.reducedMotion
+          ? 0
+          : Math.sin(g.time * 2.2 + guest.id);
+        a.position.y = -0.15 + stroke * 0.04;
+        a.rotation.y = -g.time * 0.5 - guest.id;
+        a.userData.arms.forEach(
+          (arm, i) => (arm.rotation.x = -0.3 + stroke * (i ? -0.35 : 0.35)),
+        );
+        a.userData.elbows.forEach((elbow) => (elbow.rotation.x = -0.35));
         a.userData.float.visible = true;
         a.userData.luggage.visible = false;
         a.userData.legs.forEach((l) => (l.visible = false));
@@ -2283,8 +2293,11 @@ export class HotelView {
           a.userData.elbows[0].rotation.x = -0.45 - bite * 0.65;
         }
       }
-      if (coffee && a.userData.cup.visible) {
-        const sip = Math.pow(Math.max(0, Math.sin(g.time * 1.4 + guest.id)), 4);
+      this.relaxationPose(a, guest, dt);
+      if (coffee && a.userData.cup.visible && !guest.moving) {
+        const sip = this.reducedMotion
+          ? 0
+          : Math.pow(Math.max(0, Math.sin(g.time * 1.4 + guest.id)), 4);
         a.userData.cup.position.y = 0.04 + sip * 0.3;
         a.userData.cup.position.z = sip * 0.06;
         a.userData.cup.rotation.x = -0.2 * sip;
@@ -2522,6 +2535,39 @@ export class HotelView {
     this.renderer.dispose();
     this.playerOverlay.dispose();
     document.querySelector("#labels").replaceChildren();
+  }
+  relaxationPose(actor, guest, dt) {
+    const sitting = guest.phase === "skyLounge";
+    const resting =
+      guest.phase === "roofSpa" && guest.spaSlot !== undefined && !guest.moving;
+    const factor = this.reducedMotion
+      ? 1
+      : 1 - Math.exp(-Math.min(dt, 0.1) * 10);
+    const pose = (actor.userData.relaxation ||= { seat: 0, spa: 0 });
+    pose.seat += ((sitting ? 1 : 0) - pose.seat) * factor;
+    pose.spa += ((resting ? 1 : 0) - pose.spa) * factor;
+    if (pose.seat > 0.001) {
+      // Settle onto the sofa, facing out towards the corridor and coffee table.
+      actor.position.z -= pose.seat * 1.15;
+      actor.position.y += pose.seat * 0.16;
+      actor.rotation.y = 0;
+      actor.userData.legs.forEach(
+        (leg) => (leg.rotation.x = (-Math.PI / 2) * pose.seat),
+      );
+      actor.userData.knees.forEach(
+        (knee) => (knee.rotation.x = (Math.PI / 2) * pose.seat),
+      );
+    }
+    if (pose.spa > 0.001) {
+      actor.position.z -= pose.spa * 1.2;
+      actor.position.y += pose.spa * 1.2;
+      actor.rotation.set((-Math.PI / 2) * pose.spa, 0, 0);
+      actor.userData.arms.forEach((arm) => (arm.rotation.x = -0.12));
+      actor.userData.elbows.forEach((elbow) => (elbow.rotation.x = -0.12));
+      actor.userData.cup.visible = false;
+    }
+    if (guest.phase === "roofDrink" && !guest.moving)
+      actor.rotation.y = Math.PI;
   }
   cleaningPose(actor) {
     const phase = this.game.time * 6 * workRate(this.game.state);

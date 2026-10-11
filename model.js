@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=3dabe0fd3180ef13";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=3dabe0fd3180ef13";
-import { ECONOMY } from "./economy.js?v=3dabe0fd3180ef13";
-import { demoPadAllowed } from "./opening.js?v=3dabe0fd3180ef13";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=91878ba185362362";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=91878ba185362362";
+import { ECONOMY } from "./economy.js?v=91878ba185362362";
+import { demoPadAllowed } from "./opening.js?v=91878ba185362362";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -623,11 +623,20 @@ export function depart(g, v) {
         .length < 3
     ) {
       v.usedSkyLounge = true;
+      v.loungeSeat = [0, 1, 2].find(
+        (seat) =>
+          !g.guests.some(
+            (other) =>
+              other !== v &&
+              ["toSkyLounge", "skyLounge"].includes(other.phase) &&
+              other.loungeSeat === seat,
+          ),
+      );
       v.phase = "toSkyLounge";
       v.timer = 6;
       v.route = [
         { x: 2.9, z: -8.2 + cafeOffset(g.state) },
-        { x: ((v.id % 3) - 1) * 0.9, z: -9.3 + cafeOffset(g.state) },
+        { x: (v.loungeSeat - 1) * 0.9, z: -9.3 + cafeOffset(g.state) },
       ];
       return;
     }
