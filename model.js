@@ -1,7 +1,7 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=91878ba185362362";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=91878ba185362362";
-import { ECONOMY } from "./economy.js?v=91878ba185362362";
-import { demoPadAllowed } from "./opening.js?v=91878ba185362362";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=af9fb429fdccf7dc";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=af9fb429fdccf7dc";
+import { ECONOMY } from "./economy.js?v=af9fb429fdccf7dc";
+import { demoPadAllowed } from "./opening.js?v=af9fb429fdccf7dc";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -615,6 +615,14 @@ function dropCash(g, value, source = "reception", spot) {
     });
 }
 export function depart(g, v) {
+  // Unserved guests are already on the entrance side of reception.
+  // Do not send them through the room-return corridor.
+  if (!g.state.floor && v.phase === "queue") {
+    v.phase = "exit";
+    v.room = -1;
+    v.route = [{ x: v.x, z: 16 }];
+    return;
+  }
   if (g.state.floor === 1) {
     if (
       g.state.lounge &&

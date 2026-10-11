@@ -1,13 +1,13 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=91878ba185362362";
-import { furniture } from "./furniture.js?v=91878ba185362362";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=af9fb429fdccf7dc";
+import { furniture } from "./furniture.js?v=af9fb429fdccf7dc";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=91878ba185362362";
-import { DECOR } from "./decor.js?v=91878ba185362362";
-import * as T from "./vendor/three.module.js?v=91878ba185362362";
+} from "./animation.js?v=af9fb429fdccf7dc";
+import { DECOR } from "./decor.js?v=af9fb429fdccf7dc";
+import * as T from "./vendor/three.module.js?v=af9fb429fdccf7dc";
 import {
   ROOMS,
   cafeOffset,
@@ -29,7 +29,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=91878ba185362362";
+} from "./model.js?v=af9fb429fdccf7dc";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -1389,6 +1389,17 @@ export class HotelView {
         5.9,
       );
       a.rotation.y = 0;
+      a.userData.keycard = this.box(
+        0.19,
+        0.12,
+        0.025,
+        0xeec77d,
+        0.34,
+        0.96,
+        0.4,
+        a,
+      );
+      a.userData.keycard.visible = false;
       p.add(a);
     }
   }
@@ -1925,6 +1936,17 @@ export class HotelView {
     };
   }
   event(e) {
+    if (e.type === "checkin") {
+      const desk = this.receptionActors?.reduce(
+        (closest, actor) =>
+          !closest ||
+          Math.abs(actor.position.x - e.x) < Math.abs(closest.position.x - e.x)
+            ? actor
+            : closest,
+        null,
+      );
+      if (desk) desk.userData.welcomeUntil = this.game.time + 0.85;
+    }
     if (e.type === "build") {
       this.rebuild();
       const room = roomForPad(e.i);
@@ -2079,11 +2101,10 @@ export class HotelView {
       const working =
         onDuty(s) &&
         (s.extraDesk && i === 1 ? g.secondService > 0 : g.service > 0);
-      actor.userData.arms.forEach(
-        (arm, j) =>
-          (arm.rotation.x = working
-            ? -0.65 + Math.sin(g.time * 7 + j) * 0.12
-            : 0),
+      this.receptionPose(
+        actor,
+        working,
+        (actor.userData.welcomeUntil || 0) > g.time,
       );
     });
     this.cleanerActors.forEach((a, i) => {
@@ -2259,23 +2280,7 @@ export class HotelView {
         a.userData.legs.forEach((l) => (l.visible = false));
         a.userData.shoes.forEach((l) => (l.visible = false));
       }
-      if (guest.phase === "gym") {
-        a.position.y = 0.2 + Math.abs(Math.sin(g.time * 8 + guest.id)) * 0.08;
-        a.userData.legs.forEach(
-          (leg, j) =>
-            (leg.rotation.x = Math.sin(g.time * 8 + j * Math.PI) * 0.35),
-        );
-        a.userData.arms.forEach(
-          (arm, j) =>
-            (arm.rotation.x = Math.sin(g.time * 8 + j * Math.PI) * 0.25 - 0.3),
-        );
-        a.userData.knees.forEach(
-          (knee, j) =>
-            (knee.rotation.x =
-              Math.max(0, Math.sin(g.time * 8 + j * Math.PI)) * 0.6),
-        );
-        a.userData.luggage.visible = false;
-      }
+      if (guest.phase === "gym") this.gymPose(a, guest);
       if (["restaurant", "restaurantEating"].includes(guest.phase)) {
         // Guests occupy the near chair and face their table.
         a.rotation.set(0, Math.PI, 0);
@@ -2535,6 +2540,48 @@ export class HotelView {
     this.renderer.dispose();
     this.playerOverlay.dispose();
     document.querySelector("#labels").replaceChildren();
+  }
+  receptionPose(actor, working, welcoming) {
+    const tap = this.reducedMotion ? 0 : Math.sin(this.game.time * 9);
+    actor.userData.arms.forEach((arm, index) => {
+      arm.rotation.x =
+        welcoming && index === 1
+          ? -1.1
+          : working
+            ? -0.7 + tap * (index ? -0.09 : 0.09)
+            : 0;
+    });
+    actor.userData.elbows.forEach(
+      (elbow) => (elbow.rotation.x = working || welcoming ? -0.4 : 0),
+    );
+    if (actor.userData.keycard) {
+      actor.userData.keycard.visible = welcoming;
+      actor.userData.keycard.position.z = 0.48;
+    }
+  }
+  gymPose(actor, guest) {
+    const phase = this.game.time * (7.5 + (guest.id % 3) * 0.3) + guest.id;
+    const stride = this.reducedMotion ? 0 : Math.sin(phase);
+    // Face the treadmill console with feet resting on its raised belt.
+    actor.rotation.set(-0.08, Math.PI, 0);
+    actor.position.y =
+      0.6 + (this.reducedMotion ? 0 : Math.abs(stride) * 0.045);
+    actor.position.z -= 0.65;
+    actor.userData.legs.forEach(
+      (leg, i) => (leg.rotation.x = stride * (i ? -0.48 : 0.48)),
+    );
+    actor.userData.arms.forEach(
+      (arm, i) => (arm.rotation.x = -0.55 + stride * (i ? 0.3 : -0.3)),
+    );
+    actor.userData.knees.forEach(
+      (knee, i) =>
+        (knee.rotation.x = this.reducedMotion
+          ? 0
+          : Math.max(0, Math.sin(phase + i * Math.PI)) * 0.8),
+    );
+    actor.userData.elbows.forEach((elbow) => (elbow.rotation.x = -0.85));
+    actor.userData.luggage.visible = false;
+    actor.userData.cup.visible = false;
   }
   relaxationPose(actor, guest, dt) {
     const sitting = guest.phase === "skyLounge";
