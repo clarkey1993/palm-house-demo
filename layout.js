@@ -1,3 +1,4 @@
+import { RESORT_PADS } from "./resort.js?v=5c2d59b334f77ae1";
 // Shared world layout: simulation and rendering use the same coordinates.
 export const ROOMS = [
   { x: -7.8, z: -8.5, name: "Palm suite" },
@@ -49,6 +50,7 @@ export const PADS = [
   { x: 22, z: -10, i: 35 },
   { x: 10.3, z: -21, i: 36 },
   { x: 31, z: -16, i: 37 },
+  ...RESORT_PADS.map(({ i, x, z }) => ({ i, x, z })),
 ];
 export const FACILITIES = {
   reception: { x: 3.4, z: 7.4 },

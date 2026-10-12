@@ -1,7 +1,9 @@
-import { coverFloor, placeArchitecture } from "./architecture.js?v=a3b39fbb74b88123";
-import * as T from "./vendor/three.module.js?v=a3b39fbb74b88123";
-import { HotelView } from "./view.js?v=a3b39fbb74b88123";
-import { PADS } from "./model.js?v=a3b39fbb74b88123";
+import { buildResort } from "./resort-view.js?v=5c2d59b334f77ae1";
+import { level } from "./resort.js?v=5c2d59b334f77ae1";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=5c2d59b334f77ae1";
+import * as T from "./vendor/three.module.js?v=5c2d59b334f77ae1";
+import { HotelView } from "./view.js?v=5c2d59b334f77ae1";
+import { PADS } from "./model.js?v=5c2d59b334f77ae1";
 export class RooftopView extends HotelView {
   makeWorld() {
     this.addSea();
@@ -145,7 +147,9 @@ export class RooftopView extends HotelView {
       0,
       0,
     );
-    for (const pad of PADS.filter((p) => p.i >= 29 && p.i <= 32))
+    for (const pad of PADS.filter(
+      (p) => (p.i >= 29 && p.i <= 32) || (p.i >= 48 && p.i <= 50),
+    ))
       this.makePurchasePad(pad, 0.4);
   }
 
@@ -154,7 +158,8 @@ export class RooftopView extends HotelView {
     const p = (this.facilities = new T.Group());
     this.scene.add(p);
     const s = this.game.state;
-    for (let n = 0; n < 2 + s.poolLevel * 2; n++) {
+    buildResort(this, p);
+    for (let n = level(s, "cabanas") ? 2 : 0; n < 2 + s.poolLevel * 2; n++) {
       const x = -8 + (n % 3) * 2.7,
         z = 3 + Math.floor(n / 3) * 2.6;
       if (!this.addFurniture("pool-lounger", p, x, 0.3, z, 1, 0xdba38d)) {

@@ -1,7 +1,22 @@
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=a3b39fbb74b88123";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=a3b39fbb74b88123";
-import { ECONOMY } from "./economy.js?v=a3b39fbb74b88123";
-import { demoPadAllowed } from "./opening.js?v=a3b39fbb74b88123";
+import {
+  restoreResort,
+  resortProject,
+  resortUnlocked,
+  resortPrice,
+  resortBenefit,
+  resortWages,
+  level,
+  gymBonus,
+  mealBonus,
+  resortArea,
+  updateResort,
+  resortObstacles,
+  recordResortVisit,
+} from "./resort.js?v=5c2d59b334f77ae1";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=5c2d59b334f77ae1";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=5c2d59b334f77ae1";
+import { ECONOMY } from "./economy.js?v=5c2d59b334f77ae1";
+import { demoPadAllowed } from "./opening.js?v=5c2d59b334f77ae1";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -25,6 +40,7 @@ const doorX = (i) => Math.sign(ROOMS[i].x) * 3.1;
 const corridorX = (i) => 2.9;
 export const unlocked = (s, i) => {
   if (s.openingDemo && !demoPadAllowed(s, i)) return false;
+  if (resortProject(i)) return resortUnlocked(s, resortProject(i));
   if (i === 36) return !s.floor && s.wing && s.restaurant;
   if (i === 37) return !s.floor && s.gym;
   if (s.floor === 2) return i >= 29 && i <= 32;
@@ -63,6 +79,7 @@ export const nextWage = (s, role) =>
   (BASE_WAGES[role] + staffCount(s, role) * 10) *
   (s.economy ? (s.floor === 1 ? 4 : 3) : 1);
 export const wageRate = (s) =>
+  resortWages(s) +
   s.attendants * 60 +
   15 * s.attendants * (s.attendants - 1) +
   (s.servers ? 90 * s.servers + 15 * s.servers * (s.servers - 1) : 0) +
@@ -77,6 +94,7 @@ export const wageRate = (s) =>
 export const onDuty = (s) => s.wagesDue === 0;
 export const LOBBY_UPGRADES = { 25: "barMenu", 26: "bakery", 27: "minibar" };
 export const price = (s, i) => {
+  if (resortProject(i)) return resortPrice(s, resortProject(i));
   if (s.floor === 1 && i === 19) return ECONOMY.upperWing;
   const upperRoom = roomForPad(i);
   if (s.floor === 1 && upperRoom >= 0)
@@ -112,6 +130,8 @@ export const price = (s, i) => {
   return ECONOMY.lobby[i - 4];
 };
 export const complete = (s, i) => {
+  if (resortProject(i))
+    return level(s, resortProject(i).key) >= resortProject(i).cost.length;
   if (i === 36) return s.gym;
   if (i === 37) return s.gymUpgrade;
   if (i === 33) return s.restaurantPlot;
@@ -141,10 +161,14 @@ export const complete = (s, i) => {
         : s[["pool", "desk", "concierge", "cafe", "cleaner", "runner"][i - 4]];
 };
 export const label = (s, i) => {
+  if (resortProject(i)) {
+    const p = resortProject(i);
+    return p.name + " " + (level(s, p.key) + 1) + "/" + p.cost.length;
+  }
   if (i === 36) return "Open guest gym";
   if (i === 37) return "Upgrade gym";
   if (i === 28) return "Open the rooftop";
-  if (i === 29) return "Pool cabanas " + (s.poolLevel + 1) + "/2";
+  if (i === 29) return "Pool loungers " + (s.poolLevel + 1) + "/2";
   if (i === 30) return s.roofJuice ? "Upgrade juice bar" : "Sunset juice bar";
   if (i === 31) return s.roofSpa ? "Upgrade spa" : "Open the spa";
   if (i === 32) return "Hire pool host " + (s.attendants + 1) + "/2";
@@ -194,6 +218,7 @@ export const label = (s, i) => {
   ][i - 4];
 };
 export const benefit = (s, i) => {
+  if (resortProject(i)) return resortBenefit(s, resortProject(i));
   if (s.campaignLocks?.[i]) return s.campaignLocks[i];
   if (s.floor === 1 && i === 19)
     return "Unlock two more room projects · upstairs capacity grows to eight";
@@ -282,6 +307,7 @@ export const benefit = (s, i) => {
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 export function createGame(saved) {
   const s = {
+    resort: restoreResort(saved?.resort),
     cash: 0,
     floor: 0,
     elevator: false,
@@ -923,7 +949,7 @@ export function obstacles(s) {
       });
   if (s.laundry) r.push({ x: -9.8, z: 8.65, w: 3.6, d: 1.3 });
   if (s.lounge) r.push({ x: -1.85, z: -11.2 + cafeOffset(s), w: 3.7, d: 1.5 });
-  return r;
+  return [...r, ...resortObstacles(s)];
 }
 export function blocked(g, x, z) {
   const s = g.state;
@@ -937,7 +963,8 @@ export function blocked(g, x, z) {
   const gym = s.gym && x >= 15 && x <= 33 && z >= -30 && z <= -12;
   const gymPassage =
     s.gym && s.wing && x > 11.4 && x < 15 && z >= -22 && z <= -20;
-  if (!(main || dining || bridge || gym || gymPassage)) return true;
+  if (!(main || dining || bridge || gym || gymPassage || resortArea(s, x, z)))
+    return true;
   return obstacles(g.state).some(
     (r) =>
       x > r.x - 0.3 &&
@@ -1248,9 +1275,10 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
     } else if (v.phase === "gym") {
       v.timer -= dt;
       if (v.timer <= 0) {
-        const value = s.gymUpgrade ? 65 : 40;
+        const value = (s.gymUpgrade ? 65 : 40) + gymBonus(s);
         dropCash(g, value, "gym");
         s.visits.gym++;
+        for (const key of ["weights", "yoga"]) recordResortVisit(g, key);
         s.earned += value;
         v.satisfaction = Math.min(100, (v.satisfaction || 75) + 6);
         g.events.push({ type: "tip", ...FACILITIES.gym, value });
@@ -1318,12 +1346,14 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
       }
     } else if (v.phase === "restaurant") {
       v.mealWait += dt;
-      if (serving.has(v.id)) v.timer -= dt * (1 + s.kitchen * 0.25);
+      if (serving.has(v.id))
+        v.timer -= dt * (1 + s.kitchen * 0.25 + level(s, "chef") * 0.25);
       if (v.timer <= 0 || v.mealWait > 40) {
         if (v.timer <= 0) {
-          const value = 45 + s.kitchen * 15;
+          const value = 45 + s.kitchen * 15 + mealBonus(s);
           dropCash(g, value, "restaurant");
           s.visits.restaurant++;
+          for (const key of ["desserts", "chef"]) recordResortVisit(g, key);
           s.earned += value;
           v.satisfaction = Math.min(100, (v.satisfaction || 75) + 10);
           g.events.push({ type: "tip", ...FACILITIES.restaurant, value });
@@ -1486,7 +1516,8 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
     if (s.paid[i] >= price(s, i)) {
       s.paid[i] = 0;
       const room = roomForPad(i);
-      if (room >= 0) s.levels[room]++;
+      if (resortProject(i)) s.resort.levels[resortProject(i).key]++;
+      else if (room >= 0) s.levels[room]++;
       else if (i === 4) {
         s.pool = true;
         g.player.x = -3.4;
@@ -1550,4 +1581,5 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
       g.events.push({ type: "build", i, x: pad.x, z: pad.z });
     }
   }
+  updateResort(g, dt, { blocked, dropCash, cleanSpots: CLEAN_SPOTS });
 }

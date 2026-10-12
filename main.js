@@ -1,24 +1,25 @@
-import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=a3b39fbb74b88123";
+import { PROJECTS, RESORT_STAFF, level } from "./resort.js?v=5c2d59b334f77ae1";
+import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=5c2d59b334f77ae1";
 import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=a3b39fbb74b88123";
-import { mountFeedback } from "./feedback.js?v=a3b39fbb74b88123";
-import { preloadFurniture } from "./furniture.js?v=a3b39fbb74b88123";
+} from "./performance.js?v=5c2d59b334f77ae1";
+import { mountFeedback } from "./feedback.js?v=5c2d59b334f77ae1";
+import { preloadFurniture } from "./furniture.js?v=5c2d59b334f77ae1";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=a3b39fbb74b88123";
-import { createSeaAmbience } from "./ambience.js?v=a3b39fbb74b88123";
-import { createSoundEffects } from "./sound-effects.js?v=a3b39fbb74b88123";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=a3b39fbb74b88123";
-import { openingTask } from "./onboarding.js?v=a3b39fbb74b88123";
-import { BUILD } from "./build-config.js?v=a3b39fbb74b88123";
-import { BrowserSaveStore } from "./save-store.js?v=a3b39fbb74b88123";
-import { PlaytestLog } from "./playtest.js?v=a3b39fbb74b88123";
+} from "./restoration.js?v=5c2d59b334f77ae1";
+import { createSeaAmbience } from "./ambience.js?v=5c2d59b334f77ae1";
+import { createSoundEffects } from "./sound-effects.js?v=5c2d59b334f77ae1";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=5c2d59b334f77ae1";
+import { openingTask } from "./onboarding.js?v=5c2d59b334f77ae1";
+import { BUILD } from "./build-config.js?v=5c2d59b334f77ae1";
+import { BrowserSaveStore } from "./save-store.js?v=5c2d59b334f77ae1";
+import { PlaytestLog } from "./playtest.js?v=5c2d59b334f77ae1";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -26,7 +27,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=a3b39fbb74b88123";
+} from "./opening.js?v=5c2d59b334f77ae1";
 import {
   createGame,
   update,
@@ -51,7 +52,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=a3b39fbb74b88123";
+} from "./model.js?v=5c2d59b334f77ae1";
 import {
   createHotel,
   serializeHotel,
@@ -64,12 +65,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=a3b39fbb74b88123";
-import { HotelView } from "./view.js?v=a3b39fbb74b88123";
-import { RooftopView } from "./rooftop-view.js?v=a3b39fbb74b88123";
-import { roofValue } from "./rooftop.js?v=a3b39fbb74b88123";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=a3b39fbb74b88123";
-import { parseSave, SaveConflictError } from "./saves.js?v=a3b39fbb74b88123";
+} from "./hotel.js?v=5c2d59b334f77ae1";
+import { HotelView } from "./view.js?v=5c2d59b334f77ae1";
+import { RooftopView } from "./rooftop-view.js?v=5c2d59b334f77ae1";
+import { roofValue } from "./rooftop.js?v=5c2d59b334f77ae1";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=5c2d59b334f77ae1";
+import { parseSave, SaveConflictError } from "./saves.js?v=5c2d59b334f77ae1";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -100,7 +101,7 @@ let saved,
 try {
   if (document.body.dataset.hotelPreview !== "true") {
     if (nativeStorage) {
-      const { createNativeSaveStore } = await import("./native-save-store.js?v=a3b39fbb74b88123");
+      const { createNativeSaveStore } = await import("./native-save-store.js?v=5c2d59b334f77ae1");
       saveStore = await createNativeSaveStore(saveStore);
     }
     const loaded = await saveStore.load();
@@ -653,6 +654,27 @@ function management() {
       metrics.wages +
       " wages)";
     body.append(summary);
+    for (const role of RESORT_STAFF.filter(
+      (r) => r.floor === floor && level(g.state, r.key),
+    )) {
+      const info = document.createElement("p");
+      const n = level(g.state, role.key);
+      info.textContent = `${role.name.replace("Hire ", "")}: ${n} · $${role.wage * n + (15 * n * (n - 1)) / 2}/min · ${n > 1 ? "service + preparation team" : "automatic service"}`;
+      const release = document.createElement("button");
+      release.textContent = "Release one " + role.name.replace("Hire ", "");
+      release.onclick = () => {
+        g.state.resort.levels[role.key]--;
+        const workers = (g.resortActors || []).filter(
+          (a) => a.worker && a.project === role.project,
+        );
+        const last = workers.at(-1);
+        g.resortActors = (g.resortActors || []).filter((a) => a !== last);
+        save();
+        view.rebuild();
+        management();
+      };
+      body.append(info, release);
+    }
     const bookingList = document.createElement("div");
     bookingList.className = "booking-list";
     g.state.levels.forEach((level, room) => {
@@ -902,6 +924,59 @@ function renderJourney() {
     card.append(number, body, reward);
     littleRewards.append(card);
   }
+  for (const project of PROJECTS) {
+    const floor = hotel.floors[project.floor];
+    if (
+      !floor ||
+      (!level(floor.state, project.key) &&
+        project.requires &&
+        !floor.state[project.requires])
+    )
+      continue;
+    const lv = level(floor.state, project.key),
+      visits = floor.state.resort.visits[project.key] || 0;
+    const card = document.createElement("article");
+    card.className = "chapter-card";
+    const body = document.createElement("div"),
+      title = document.createElement("strong"),
+      detail = document.createElement("small");
+    title.textContent = project.name + " · " + lv + "/2";
+    detail.textContent =
+      ["Lobby", "Sky Suites", "Rooftop"][project.floor] +
+      " · " +
+      (lv
+        ? visits +
+          " visits · " +
+          (floor.state.resort.claimed.includes(project.key)
+            ? "Opening reward earned · "
+            : Math.min(10, visits) + "/10 for $300 · ")
+        : "Unlock on its gold floor pad · ") +
+      project.benefit;
+    body.append(title, detail);
+    card.append(body);
+    if (lv < project.cost.length) {
+      const locate = document.createElement("button");
+      locate.textContent = "Find pad";
+      locate.onclick = () => {
+        $("#close-management").click();
+        if (hotel.active !== project.floor) {
+          notify(
+            "Take the lift to " +
+              ["the lobby", "the Sky Suites", "the rooftop"][project.floor] +
+              " to find this project.",
+          );
+          return;
+        }
+        view.manual = true;
+        view.overview = false;
+        view.setFrustum();
+        view.target.set(project.x, 0, project.z - 1);
+        notify(project.name + " · stand still on its gold pad to pay.");
+      };
+      card.append(locate);
+    }
+    list.append(card);
+  }
 }
 
 function renderCampaign(list) {
@@ -1112,7 +1187,7 @@ $("#export-save").onclick = async () => {
   button.disabled = true;
   try {
     if (window.Capacitor?.getPlatform() === "ios") {
-      const { shareNativeBackup } = await import("./native-backup.js?v=a3b39fbb74b88123");
+      const { shareNativeBackup } = await import("./native-backup.js?v=5c2d59b334f77ae1");
       const result = await shareNativeBackup(serializeHotel(hotel));
       $("#backup-feedback").textContent = result.completed
         ? "Backup exported. Keep it somewhere safe."
@@ -1624,6 +1699,32 @@ function hud() {
         : "NEARBY UPGRADE";
     progress = (s.paid[i] / price(s, i)) * 100;
     icon = "↑";
+  }
+  const serviceOrder = (game.resortActors || [])
+    .filter((a) => !a.worker && a.phase === "resortWait")
+    .map((a) => ({
+      actor: a,
+      project: PROJECTS.find((p) => p.key === a.project),
+    }))
+    .find(
+      ({ actor, project }) =>
+        distance(
+          game.player,
+          project.key === "roomService" ? actor.target : project.service,
+        ) < 3,
+    );
+  if (serviceOrder && !inspectingUpgrade && game.cleanRoom < 0) {
+    const { actor, project } = serviceOrder;
+    title =
+      project.key === "roomService"
+        ? "Deliver the room-service order"
+        : "Serve " + project.name.toLowerCase();
+    detail =
+      "Stand still in the mint ring to help. Hire staff on this area's gold pad to automate service. Receipts collect " +
+      (s.floor ? "by the upstairs lounge." : "beside reception.");
+    head = "GUEST WAITING · NO TIME LIMIT";
+    progress = (actor.service / 3) * 100;
+    icon = "✦";
   }
   const recovery = payrollRecovery(hotel);
   if (recovery && game.active < 0 && game.cleanRoom < 0) {

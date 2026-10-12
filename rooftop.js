@@ -1,4 +1,10 @@
 import {
+  resortProject,
+  level,
+  roofBonus,
+  recordResortVisit,
+} from "./resort.js?v=5c2d59b334f77ae1";
+import {
   createGame,
   PADS,
   price,
@@ -6,12 +12,13 @@ import {
   distance,
   payroll,
   onDuty,
+  unlocked,
   moveRate,
-} from "./model.js?v=a3b39fbb74b88123";
+} from "./model.js?v=5c2d59b334f77ae1";
 export const ROOF_LIFT = { x: 3.2, z: 12.8 };
 export const ROOF_CASH = { x: 1.7, z: 5.5 };
 export const roofValue = (s) =>
-  60 + s.poolLevel * 25 + s.roofJuice * 25 + s.roofSpa * 40;
+  60 + s.poolLevel * 25 + s.roofJuice * 25 + s.roofSpa * 40 + roofBonus(s);
 export function createRooftop(saved) {
   const g = createGame({
     ...saved,
@@ -137,7 +144,48 @@ export function updateRooftop(g, dt, input = { x: 0, z: 0 }) {
         v.phase = v.phase === "roofDrink" && s.roofSpa ? "roofSpa" : "roofPay";
         v.timer = 6;
       }
+    } else if (["roofCabana", "roofDinner"].includes(v.phase)) {
+      const at =
+        v.phase === "roofCabana"
+          ? { x: -8 + v.resortSlot * 2.7, z: 4.2 }
+          : { x: 5.5 + v.resortSlot * 2.9, z: 6.5 };
+      if (walk(v, at, dt)) {
+        v.moving = false;
+        v.timer -= dt;
+      }
+      if (v.timer <= 0) v.phase = "roofPay";
     } else if (v.phase === "roofPay") {
+      if (level(s, "cabanas") && !v.usedCabana) {
+        const slot = [0, 1].find(
+          (i) =>
+            !g.guests.some(
+              (a) => a !== v && a.phase === "roofCabana" && a.resortSlot === i,
+            ),
+        );
+        if (slot === undefined) continue;
+        v.resortSlot = slot;
+        v.usedCabana = true;
+        v.phase = "roofCabana";
+        v.timer = 7;
+        continue;
+      }
+      if (level(s, "sunset") && !v.usedDinner) {
+        const slot = [0, 1].find(
+          (i) =>
+            !g.guests.some(
+              (a) => a !== v && a.phase === "roofDinner" && a.resortSlot === i,
+            ),
+        );
+        if (slot === undefined) continue;
+        v.resortSlot = slot;
+        v.usedDinner = true;
+        v.phase = "roofDinner";
+        v.timer = 7;
+        continue;
+      }
+      for (const key of ["cabanas", "sunset", "roofGarden"])
+        recordResortVisit(g, key);
+
       const value = roofValue(s);
       s.earned += value;
       s.welcomed++;
@@ -183,8 +231,7 @@ export function updateRooftop(g, dt, input = { x: 0, z: 0 }) {
     g.purchaseLatch = -1;
   const pad = PADS.find(
     (a) =>
-      a.i >= 29 &&
-      a.i <= 32 &&
+      unlocked(s, a.i) &&
       !complete(s, a.i) &&
       a.i !== g.purchaseLatch &&
       p.present !== false &&
@@ -206,11 +253,13 @@ export function updateRooftop(g, dt, input = { x: 0, z: 0 }) {
     g.events.push({ type: "spend", ...pad, amount });
     if (s.paid[pad.i] >= cost) {
       s.paid[pad.i] = 0;
-      s[
-        { 29: "poolLevel", 30: "roofJuice", 31: "roofSpa", 32: "attendants" }[
-          pad.i
-        ]
-      ]++;
+      if (resortProject(pad.i)) s.resort.levels[resortProject(pad.i).key]++;
+      else
+        s[
+          { 29: "poolLevel", 30: "roofJuice", 31: "roofSpa", 32: "attendants" }[
+            pad.i
+          ]
+        ]++;
       g.purchaseLatch = pad.i;
       g.events.push({ type: "build", ...pad });
     }

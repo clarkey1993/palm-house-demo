@@ -1,14 +1,16 @@
-import { performanceProfile, readSmoothPreference } from "./performance.js?v=a3b39fbb74b88123";
-import { coverFloor, placeArchitecture } from "./architecture.js?v=a3b39fbb74b88123";
-import { furniture } from "./furniture.js?v=a3b39fbb74b88123";
+import { buildResort, renderResort } from "./resort-view.js?v=5c2d59b334f77ae1";
+import { level, gymBonus } from "./resort.js?v=5c2d59b334f77ae1";
+import { performanceProfile, readSmoothPreference } from "./performance.js?v=5c2d59b334f77ae1";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=5c2d59b334f77ae1";
+import { furniture } from "./furniture.js?v=5c2d59b334f77ae1";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=a3b39fbb74b88123";
-import { DECOR } from "./decor.js?v=a3b39fbb74b88123";
-import * as T from "./vendor/three.module.js?v=a3b39fbb74b88123";
+} from "./animation.js?v=5c2d59b334f77ae1";
+import { DECOR } from "./decor.js?v=5c2d59b334f77ae1";
+import * as T from "./vendor/three.module.js?v=5c2d59b334f77ae1";
 import {
   ROOMS,
   cafeOffset,
@@ -30,7 +32,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=a3b39fbb74b88123";
+} from "./model.js?v=5c2d59b334f77ae1";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -932,6 +934,7 @@ export class HotelView {
     this.scene.add(this.facilities);
     const s = this.game.state,
       p = this.facilities;
+    buildResort(this, p);
     if (!s.floor) {
       if (s.barMenu)
         this.sign(
@@ -1088,6 +1091,11 @@ export class HotelView {
         const x = 20 + (i % 3) * 4,
           z = -19 - Math.floor(i / 3) * 5;
         this.round(3.3, 0.04, 4, 0xb5c8ae, x, 0.2, z, p, 0.25);
+        if (
+          (level(s, "weights") && (i === 0 || i === 1)) ||
+          (level(s, "yoga") && (i === 2 || i === 5))
+        )
+          continue;
         if (!this.addFurniture("treadmill", p, x, 0.2, z)) {
           this.round(1.7, 0.25, 2.7, 0x55786e, x, 0.4, z, p, 0.15);
           this.round(1.3, 0.04, 2.3, 0x344b48, x, 0.55, z, p, 0.08);
@@ -1098,7 +1106,7 @@ export class HotelView {
         }
       }
       this.sign(
-        "$" + (s.gymUpgrade ? 65 : 40) + " / WORKOUT",
+        "$" + ((s.gymUpgrade ? 65 : 40) + gymBonus(s)) + " / WORKOUT",
         5,
         0.55,
         24,
@@ -1907,9 +1915,18 @@ export class HotelView {
       if (this.game.state.wing) span += 12;
       if (this.game.state.restaurantPlot) span += 8;
       if (this.game.state.gym) span += 14;
+      if (
+        !this.game.state.floor &&
+        (level(this.game.state, "garden") || level(this.game.state, "garage"))
+      )
+        span += 8;
       span = Math.max(
         span,
-        (this.game.state.restaurantPlot ? 54 : 32) / this.aspect,
+        (this.game.state.restaurantPlot ||
+        (this.game.state.floor === 1 && this.game.state.lounge) ||
+        level(this.game.state, "garage")
+          ? 54
+          : 32) / this.aspect,
       );
     }
     span /= this.zoomFactor;
@@ -1937,7 +1954,12 @@ export class HotelView {
     this.target.x = Math.max(
       -18,
       Math.min(
-        this.game.state.restaurantPlot ? 39 : 18,
+        this.game.state.restaurantPlot ||
+          level(this.game.state, "garage") ||
+          level(this.game.state, "skyCafe") ||
+          level(this.game.state, "roomService")
+          ? 39
+          : 18,
         this.target.x - dx * units,
       ),
     );
@@ -1949,7 +1971,10 @@ export class HotelView {
           : this.game.state.expanded
             ? -25
             : -18,
-      Math.min(21, this.target.z - (dy * units) / 0.8),
+      Math.min(
+        level(this.game.state, "garden") ? 34 : 25,
+        this.target.z - (dy * units) / 0.8,
+      ),
     );
   }
   project(x, y, z) {
@@ -2079,7 +2104,10 @@ export class HotelView {
     let targetX =
         (this.mobile || this.tracking) && !this.overview
           ? g.player.x
-          : this.overview && s.restaurantPlot
+          : this.overview &&
+              (s.restaurantPlot ||
+                (s.floor === 1 && s.lounge) ||
+                level(s, "garage"))
             ? 10
             : 0,
       targetZ =
@@ -2242,7 +2270,10 @@ export class HotelView {
         );
     });
     const ids = new Set();
-    for (const guest of g.guests) {
+    for (const guest of [
+      ...g.guests,
+      ...(g.resortActors || []).filter((a) => a.room === undefined),
+    ]) {
       ids.add(guest.id);
       let a = this.actorMap.get(guest.id);
       if (!a) {
@@ -2326,6 +2357,27 @@ export class HotelView {
         }
       }
       this.relaxationPose(a, guest, dt);
+      if (guest.worker) {
+        a.userData.servingTray.visible = ![
+          "garage",
+          "luggage",
+          "excursions",
+        ].includes(guest.project);
+        a.userData.luggage.visible = guest.project === "luggage";
+      }
+      if (["roofCabana", "roofDinner"].includes(guest.phase) && !guest.moving) {
+        a.rotation.set(0, Math.PI, 0);
+        a.position.y = 0.15;
+        a.userData.legs.forEach((l) => (l.rotation.x = -Math.PI / 2));
+        a.userData.knees.forEach((k) => (k.rotation.x = Math.PI / 2));
+        a.userData.luggage.visible = false;
+        a.userData.cup.visible = guest.phase === "roofDinner";
+      }
+      if (guest.phase === "resortEnjoy") {
+        a.userData.cup.visible = ["garden", "skyCafe"].includes(guest.project);
+        a.userData.luggage.visible = guest.project === "luggage";
+      }
+
       if (coffee && a.userData.cup.visible && !guest.moving) {
         const sip = this.reducedMotion
           ? 0
@@ -2533,6 +2585,7 @@ export class HotelView {
           : pt.x < 35
             ? "← "
             : "→ ") + guideText;
+    renderResort(this, dt);
     this.renderer.render(this.scene, this.camera);
     this.playerOverlay.domElement.style.display = playerOverlapsCard
       ? "block"
@@ -2626,6 +2679,32 @@ export class HotelView {
   gymPose(actor, guest) {
     const phase = this.game.time * (7.5 + (guest.id % 3) * 0.3) + guest.id;
     const stride = this.reducedMotion ? 0 : Math.sin(phase);
+    const s = this.game.state;
+    if (
+      (level(s, "yoga") && [2, 5].includes(guest.gymSlot)) ||
+      (level(s, "weights") && [0, 1].includes(guest.gymSlot))
+    ) {
+      actor.position.y = 0.3;
+      actor.rotation.set(0, Math.PI, 0);
+      actor.userData.luggage.visible = false;
+      const yoga = level(s, "yoga") && [2, 5].includes(guest.gymSlot);
+      actor.userData.arms.forEach((arm, i) => {
+        arm.rotation.x = yoga ? -0.6 : -1 + stride * 0.3;
+        arm.rotation.z = yoga ? (i ? -0.8 : 0.8) : 0;
+      });
+      actor.userData.elbows.forEach(
+        (e) => (e.rotation.x = yoga ? -0.15 : -1.2 - stride * 0.3),
+      );
+      if (!yoga) {
+        actor.position.y = 0.85;
+        actor.userData.knees.forEach((knee) => (knee.rotation.x = 1.2));
+      }
+      if (guest.gymSlot === 1)
+        actor.userData.legs.forEach(
+          (leg, i) => (leg.rotation.x = -0.8 + stride * (i ? 0.4 : -0.4)),
+        );
+      return;
+    }
     // Face the treadmill console with feet resting on its raised belt.
     actor.rotation.set(-0.08, Math.PI, 0);
     actor.position.y =
