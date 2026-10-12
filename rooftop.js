@@ -4,7 +4,7 @@ import {
   roofBonus,
   recordResortVisit,
   resortRoute,
-} from "./resort.js?v=6934bbf7d168eb53";
+} from "./resort.js?v=8b66355174a228a7";
 import {
   createGame,
   PADS,
@@ -15,7 +15,7 @@ import {
   onDuty,
   unlocked,
   moveRate,
-} from "./model.js?v=6934bbf7d168eb53";
+} from "./model.js?v=8b66355174a228a7";
 export const ROOF_LIFT = { x: 3.2, z: 12.8 };
 export const ROOF_CASH = { x: 1.7, z: 5.5 };
 export const roofValue = (s) =>

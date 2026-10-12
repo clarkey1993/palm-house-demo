@@ -12,11 +12,11 @@ import {
   updateResort,
   resortObstacles,
   recordResortVisit,
-} from "./resort.js?v=6934bbf7d168eb53";
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=6934bbf7d168eb53";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=6934bbf7d168eb53";
-import { ECONOMY } from "./economy.js?v=6934bbf7d168eb53";
-import { demoPadAllowed } from "./opening.js?v=6934bbf7d168eb53";
+} from "./resort.js?v=8b66355174a228a7";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=8b66355174a228a7";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=8b66355174a228a7";
+import { ECONOMY } from "./economy.js?v=8b66355174a228a7";
+import { demoPadAllowed } from "./opening.js?v=8b66355174a228a7";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,

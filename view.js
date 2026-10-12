@@ -1,16 +1,16 @@
-import { buildResort, renderResort } from "./resort-view.js?v=6934bbf7d168eb53";
-import { level, gymBonus } from "./resort.js?v=6934bbf7d168eb53";
-import { performanceProfile, readSmoothPreference } from "./performance.js?v=6934bbf7d168eb53";
-import { coverFloor, placeArchitecture } from "./architecture.js?v=6934bbf7d168eb53";
-import { furniture } from "./furniture.js?v=6934bbf7d168eb53";
+import { buildResort, renderResort } from "./resort-view.js?v=8b66355174a228a7";
+import { level, gymBonus } from "./resort.js?v=8b66355174a228a7";
+import { performanceProfile, readSmoothPreference } from "./performance.js?v=8b66355174a228a7";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=8b66355174a228a7";
+import { furniture } from "./furniture.js?v=8b66355174a228a7";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=6934bbf7d168eb53";
-import { DECOR } from "./decor.js?v=6934bbf7d168eb53";
-import * as T from "./vendor/three.module.js?v=6934bbf7d168eb53";
+} from "./animation.js?v=8b66355174a228a7";
+import { DECOR } from "./decor.js?v=8b66355174a228a7";
+import * as T from "./vendor/three.module.js?v=8b66355174a228a7";
 import {
   ROOMS,
   cafeOffset,
@@ -32,7 +32,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=6934bbf7d168eb53";
+} from "./model.js?v=8b66355174a228a7";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -1202,13 +1202,7 @@ export class HotelView {
         for (let k = 0; k < s.servers; k++) {
           const actor = this.character(4);
           actor.userData.luggage.visible = false;
-          const tray = new T.Group();
-          this.cyl(0.31, 0.31, 0.045, 0xc8ae79, 0, 1.05, 0.43, tray);
-          this.cyl(0.19, 0.19, 0.028, 0xfff5df, 0, 1.085, 0.43, tray);
-          this.sphere(0.09, 0x8da77b, -0.06, 1.12, 0.43, tray);
-          actor.add(tray);
-          actor.userData.servingTray = tray;
-          tray.visible = false;
+          this.addServingTray(actor);
           p.add(actor);
           actor.position.set(25, 0, -10.4 + k * 0.65);
           this.serverActors.push(actor);
@@ -2289,6 +2283,7 @@ export class HotelView {
         menu.rotation.x = -0.35;
         a.add(menu);
         a.userData.menu = menu;
+        if (guest.worker) this.addServingTray(a);
         this.scene.add(a);
         this.actorMap.set(guest.id, a);
       }
@@ -2689,6 +2684,16 @@ export class HotelView {
       actor.userData.arms[1].rotation.x = -0.7 - bite * 0.45;
       actor.userData.elbows[1].rotation.x = -0.35 - bite * 0.4;
     }
+  }
+  addServingTray(actor) {
+    const tray = new T.Group();
+    this.cyl(0.31, 0.31, 0.045, 0xc8ae79, 0, 1.05, 0.43, tray);
+    this.cyl(0.19, 0.19, 0.028, 0xfff5df, 0, 1.085, 0.43, tray);
+    this.sphere(0.09, 0x8da77b, -0.06, 1.12, 0.43, tray);
+    actor.add(tray);
+    actor.userData.servingTray = tray;
+    tray.visible = false;
+    return tray;
   }
   receptionPose(actor, working, welcoming) {
     const tap = this.reducedMotion ? 0 : Math.sin(this.game.time * 9);
