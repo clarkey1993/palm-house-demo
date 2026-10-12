@@ -1,25 +1,26 @@
-import { PROJECTS, RESORT_STAFF, level } from "./resort.js?v=636bcf9fedd7e96d";
-import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=636bcf9fedd7e96d";
+import { InactivityTimer } from "./inactivity.js?v=b5ce4ff7252e4568";
+import { PROJECTS, RESORT_STAFF, level } from "./resort.js?v=b5ce4ff7252e4568";
+import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=b5ce4ff7252e4568";
 import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=636bcf9fedd7e96d";
-import { mountFeedback } from "./feedback.js?v=636bcf9fedd7e96d";
-import { preloadFurniture } from "./furniture.js?v=636bcf9fedd7e96d";
+} from "./performance.js?v=b5ce4ff7252e4568";
+import { mountFeedback } from "./feedback.js?v=b5ce4ff7252e4568";
+import { preloadFurniture } from "./furniture.js?v=b5ce4ff7252e4568";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=636bcf9fedd7e96d";
-import { createSeaAmbience } from "./ambience.js?v=636bcf9fedd7e96d";
-import { createSoundEffects } from "./sound-effects.js?v=636bcf9fedd7e96d";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=636bcf9fedd7e96d";
-import { openingTask } from "./onboarding.js?v=636bcf9fedd7e96d";
-import { BUILD } from "./build-config.js?v=636bcf9fedd7e96d";
-import { BrowserSaveStore } from "./save-store.js?v=636bcf9fedd7e96d";
-import { PlaytestLog } from "./playtest.js?v=636bcf9fedd7e96d";
+} from "./restoration.js?v=b5ce4ff7252e4568";
+import { createSeaAmbience } from "./ambience.js?v=b5ce4ff7252e4568";
+import { createSoundEffects } from "./sound-effects.js?v=b5ce4ff7252e4568";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=b5ce4ff7252e4568";
+import { openingTask } from "./onboarding.js?v=b5ce4ff7252e4568";
+import { BUILD } from "./build-config.js?v=b5ce4ff7252e4568";
+import { BrowserSaveStore } from "./save-store.js?v=b5ce4ff7252e4568";
+import { PlaytestLog } from "./playtest.js?v=b5ce4ff7252e4568";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -27,7 +28,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=636bcf9fedd7e96d";
+} from "./opening.js?v=b5ce4ff7252e4568";
 import {
   createGame,
   update,
@@ -52,7 +53,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=636bcf9fedd7e96d";
+} from "./model.js?v=b5ce4ff7252e4568";
 import {
   createHotel,
   serializeHotel,
@@ -65,12 +66,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=636bcf9fedd7e96d";
-import { HotelView } from "./view.js?v=636bcf9fedd7e96d";
-import { RooftopView } from "./rooftop-view.js?v=636bcf9fedd7e96d";
-import { roofValue } from "./rooftop.js?v=636bcf9fedd7e96d";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=636bcf9fedd7e96d";
-import { parseSave, SaveConflictError } from "./saves.js?v=636bcf9fedd7e96d";
+} from "./hotel.js?v=b5ce4ff7252e4568";
+import { HotelView } from "./view.js?v=b5ce4ff7252e4568";
+import { RooftopView } from "./rooftop-view.js?v=b5ce4ff7252e4568";
+import { roofValue } from "./rooftop.js?v=b5ce4ff7252e4568";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=b5ce4ff7252e4568";
+import { parseSave, SaveConflictError } from "./saves.js?v=b5ce4ff7252e4568";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -101,7 +102,7 @@ let saved,
 try {
   if (document.body.dataset.hotelPreview !== "true") {
     if (nativeStorage) {
-      const { createNativeSaveStore } = await import("./native-save-store.js?v=636bcf9fedd7e96d");
+      const { createNativeSaveStore } = await import("./native-save-store.js?v=b5ce4ff7252e4568");
       saveStore = await createNativeSaveStore(saveStore);
     }
     const loaded = await saveStore.load();
@@ -514,9 +515,15 @@ $("#ambience").onchange = () => {
   unlockAudio();
   syncAudio();
 };
-function pause(v) {
+function pause(v, inactive = false) {
+  $("#pause-title").textContent = inactive ? "Still playing?" : "A moment in the sun.";
+  $("#pause-message").textContent = inactive
+    ? "No movement for 60 seconds, so we paused your hotel. Income, wages and guests will wait for you."
+    : "Your hotel is paused. Take your time.";
+  $("#resume").textContent = inactive ? "Keep playing →" : "Back to my hotel →";
   paused = v;
   frameClock.reset();
+  inactivity.reset();
   syncAudio();
   keys = {};
   release();
@@ -1187,7 +1194,7 @@ $("#export-save").onclick = async () => {
   button.disabled = true;
   try {
     if (window.Capacitor?.getPlatform() === "ios") {
-      const { shareNativeBackup } = await import("./native-backup.js?v=636bcf9fedd7e96d");
+      const { shareNativeBackup } = await import("./native-backup.js?v=b5ce4ff7252e4568");
       const result = await shareNativeBackup(serializeHotel(hotel));
       $("#backup-feedback").textContent = result.completed
         ? "Backup exported. Keep it somewhere safe."
@@ -1902,6 +1909,7 @@ document.addEventListener("visibilitychange", () => {
   if (frameRequest != null) cancelAnimationFrame(frameRequest);
   frameRequest = null;
   frameClock.reset();
+  inactivity.reset();
   scheduleFrame();
   syncAudio();
   keys = {};
@@ -1915,6 +1923,7 @@ window.addEventListener("pagehide", () => {
 });
 window.addEventListener("resize", () => view?.resize());
 const frameClock = new FrameClock();
+const inactivity = new InactivityTimer();
 window.addEventListener("palm-house-background", () => {
   if (!nativeStorage) return;
   nativeInactive = true;
@@ -1923,6 +1932,7 @@ window.addEventListener("palm-house-background", () => {
   keys = {};
   release();
   frameClock.reset();
+  inactivity.reset();
   syncAudio();
   save();
 });
@@ -1930,6 +1940,7 @@ window.addEventListener("palm-house-foreground", () => {
   if (!nativeStorage) return;
   nativeInactive = false;
   frameClock.reset();
+  inactivity.reset();
   syncAudio();
   scheduleFrame();
 });
@@ -1942,6 +1953,7 @@ $("#smooth-animation").onchange = () => {
     localStorage.setItem("palm-house-smooth", smoothAnimation ? "on" : "off");
   } catch {}
   frameClock.reset();
+  inactivity.reset();
   view?.resize();
 };
 function scheduleFrame() {
@@ -1959,6 +1971,11 @@ function frame(t) {
   const dt = frameClock.step(t, fps);
   if (dt === null) return;
   syncAudio();
+  if (inactivity.expired(t, game.player, paused || saveConflict)) {
+    pause(true, true);
+    $("#resume").focus();
+    return;
+  }
   if (!paused && !saveConflict && !document.hidden && !nativeInactive) {
     const input =
       drag?.mode === "move"

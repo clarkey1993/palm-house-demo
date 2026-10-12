@@ -12,11 +12,11 @@ import {
   updateResort,
   resortObstacles,
   recordResortVisit,
-} from "./resort.js?v=636bcf9fedd7e96d";
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=636bcf9fedd7e96d";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=636bcf9fedd7e96d";
-import { ECONOMY } from "./economy.js?v=636bcf9fedd7e96d";
-import { demoPadAllowed } from "./opening.js?v=636bcf9fedd7e96d";
+} from "./resort.js?v=b5ce4ff7252e4568";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=b5ce4ff7252e4568";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=b5ce4ff7252e4568";
+import { ECONOMY } from "./economy.js?v=b5ce4ff7252e4568";
+import { demoPadAllowed } from "./opening.js?v=b5ce4ff7252e4568";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -1576,6 +1576,12 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
       if (i === 16) {
         g.player.x = -5.3;
         g.player.z = 9.6;
+      }
+      // A room can be bought from the inside edge of its pad, where the
+      // newly created bed would otherwise trap its builder inside collision.
+      if (room >= 0 && blocked(g, p.x, p.z)) {
+        p.x = pad.x;
+        p.z = pad.z;
       }
       g.purchaseLatch = i;
       g.events.push({ type: "build", i, x: pad.x, z: pad.z });

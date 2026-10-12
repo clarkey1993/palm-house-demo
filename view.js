@@ -1,16 +1,16 @@
-import { buildResort, renderResort } from "./resort-view.js?v=636bcf9fedd7e96d";
-import { level, gymBonus } from "./resort.js?v=636bcf9fedd7e96d";
-import { performanceProfile, readSmoothPreference } from "./performance.js?v=636bcf9fedd7e96d";
-import { coverFloor, placeArchitecture } from "./architecture.js?v=636bcf9fedd7e96d";
-import { furniture } from "./furniture.js?v=636bcf9fedd7e96d";
+import { buildResort, renderResort } from "./resort-view.js?v=b5ce4ff7252e4568";
+import { level, gymBonus } from "./resort.js?v=b5ce4ff7252e4568";
+import { performanceProfile, readSmoothPreference } from "./performance.js?v=b5ce4ff7252e4568";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=b5ce4ff7252e4568";
+import { furniture } from "./furniture.js?v=b5ce4ff7252e4568";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=636bcf9fedd7e96d";
-import { DECOR } from "./decor.js?v=636bcf9fedd7e96d";
-import * as T from "./vendor/three.module.js?v=636bcf9fedd7e96d";
+} from "./animation.js?v=b5ce4ff7252e4568";
+import { DECOR } from "./decor.js?v=b5ce4ff7252e4568";
+import * as T from "./vendor/three.module.js?v=b5ce4ff7252e4568";
 import {
   ROOMS,
   cafeOffset,
@@ -32,7 +32,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=636bcf9fedd7e96d";
+} from "./model.js?v=b5ce4ff7252e4568";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,

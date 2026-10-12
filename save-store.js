@@ -1,4 +1,4 @@
-import { loadSave, writeSave, SAVE_KEY, SaveConflictError } from "./saves.js?v=636bcf9fedd7e96d";
+import { loadSave, writeSave, SAVE_KEY, SaveConflictError } from "./saves.js?v=b5ce4ff7252e4568";
 
 // SaveStore contract: load(), raw(), write(value, expectedRaw), preserve(value).
 // The native implementation uses this browser store only for one-time migration.

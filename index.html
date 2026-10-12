@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="theme-color" content="#174e50" />
     <title>Palm House · Your little escape</title>
-    <link rel="stylesheet" href="style.css?v=636bcf9fedd7e96d" />
+    <link rel="stylesheet" href="style.css?v=b5ce4ff7252e4568" />
   </head>
   <body>
     <main id="app">
@@ -88,10 +88,10 @@
         </div>
       </footer>
       <div id="overlay" hidden>
-        <div class="pause-card">
+        <div class="pause-card" role="dialog" aria-modal="true" aria-labelledby="pause-title" aria-describedby="pause-message">
           <span class="eyebrow">PALM HOUSE</span>
-          <h2>A moment<br />in the sun.</h2>
-          <p>Your hotel is paused. Take your time.</p>
+          <h2 id="pause-title">A moment in the sun.</h2>
+          <p id="pause-message">Your hotel is paused. Take your time.</p>
           <div class="pause-stats">
             <div><b id="stat-guests">0</b><span>guests welcomed</span></div>
             <div><b id="stat-earned">$0</b><span>earned from stays</span></div>
@@ -343,6 +343,6 @@
         <p>A little sunshine. A big beginning.</p>
       </div>
     </main>
-    <script type="module" src="main.js?v=636bcf9fedd7e96d"></script>
+    <script type="module" src="main.js?v=b5ce4ff7252e4568"></script>
   </body>
 </html>
