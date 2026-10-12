@@ -1,10 +1,10 @@
-import * as T from "./vendor/three.module.js?v=5c2d59b334f77ae1";
-import { PROJECTS, level } from "./resort.js?v=5c2d59b334f77ae1";
+import * as T from "./vendor/three.module.js?v=6934bbf7d168eb53";
+import { PROJECTS, level } from "./resort.js?v=6934bbf7d168eb53";
 export function buildResort(v, p) {
   const s = v.game.state;
   const surface = s.floor === 2 ? 0.34 : 0.14;
-  const floor = (x, z, w, d, color) =>
-    v.round(w, 0.16, d, color, x, surface, z, p, 0.3);
+  const floor = (x, z, w, d, color, lift = 0) =>
+    v.round(w, 0.16, d, color, x, surface + lift, z, p, 0.3);
   const sign = (text, x, z, w = 5) =>
     (v.sign(
       text,
@@ -40,7 +40,7 @@ export function buildResort(v, p) {
     if (!level(s, "garden")) sign("TEA GARDEN", 1, 19.2, 4);
   }
   if (!s.floor && level(s, "garage")) {
-    floor(24, 15.5, 19, 16, 0xabbab0);
+    floor(24, 15.5, 19, 16, 0xabbab0, 0.005);
     v.box(18.8, 1.1, 0.25, 0x71948b, 24, 0.8, 23.4, p);
     sign("PALM VALET · PARK & RELAX", 24, 21.5, 11);
     for (const x of [15.5, 32.5])
@@ -49,7 +49,7 @@ export function buildResort(v, p) {
     v.round(1.6, 1, 1, 0xe3b97c, 21, 0.8, 9, p, 0.15);
     for (let i = 0; i < 3; i++) {
       const x = 19 + i * 5;
-      floor(x, 16, 3.5, 6, 0x829c93);
+      floor(x, 16, 3.5, 6, 0x829c93, 0.015);
       sign("P" + (i + 1), x, 12.1, 0.9);
       for (const dx of [-1.8, 1.8])
         v.box(0.06, 0.02, 6, 0xf7edcf, x + dx, 0.25, 16, p);
@@ -62,21 +62,21 @@ export function buildResort(v, p) {
     }
   }
   if (!s.floor && level(s, "garden")) {
-    floor(0, 23.5, 23, 15, 0x9fbc89);
-    floor(0, 23, 4, 14, 0xe7d4a7);
+    floor(0, 25.5, 23, 11, 0x9fbc89);
+    floor(0, 23, 4, 14, 0xe7d4a7, 0.02);
     for (const x of [-10, 10])
       for (const z of [19, 24, 29]) v.plant(x, z, 1, p);
     for (const x of [-6, 6]) {
-      floor(x, 25, 6, 6, 0xd5c49c);
+      floor(x, 25, 6, 6, 0xd5c49c, 0.01);
       seat(x, 25.8);
       table(x, 24.5);
     }
     v.round(2.8, 0.8, 1, 0xdbb076, 0, 0.65, 24, p, 0.15);
     sign("THE TEA GARDEN", 0, 28.5, 8);
     if (level(s, "garden") > 1) {
-      v.cyl(1.15, 1.25, 0.45, 0xe4d9be, 6, 0.45, 20, p);
-      v.cyl(0.92, 0.92, 0.05, 0x70c6c1, 6, 0.71, 20, p);
-      v.cyl(0.2, 0.4, 1.1, 0xf0e4cc, 6, 1.1, 20, p);
+      v.cyl(1.15, 1.25, 0.45, 0xe4d9be, 8, 0.45, 21.5, p);
+      v.cyl(0.92, 0.92, 0.05, 0x70c6c1, 8, 0.71, 21.5, p);
+      v.cyl(0.2, 0.4, 1.1, 0xf0e4cc, 8, 1.1, 21.5, p);
     }
   }
   if (!s.floor && level(s, "luggage")) {
@@ -95,9 +95,9 @@ export function buildResort(v, p) {
     asset("service-trolley", -7.4, 19.3, 0.8);
   }
   if (!s.floor && level(s, "excursions")) {
-    v.round(2.3, 0.9, 0.7, 0xb5996d, 7, 0.75, 3.2, p, 0.12);
-    v.sign("SEASIDE OUTINGS", 2.5, 0.48, 7, 1.7, 2.9, p);
-    v.box(0.7, 0.4, 0.05, 0x6ab6b4, 7, 1.25, 2.8, p);
+    v.round(2.3, 0.9, 0.7, 0xb5996d, 7, 0.75, 19.3, p, 0.12);
+    v.sign("SEASIDE OUTINGS", 2.5, 0.48, 7, 1.7, 19, p);
+    v.box(0.7, 0.4, 0.05, 0x6ab6b4, 7, 1.25, 18.9, p);
   }
   if (!s.floor && level(s, "desserts")) asset("dessert-display", 29, 1.3, 1);
   if (!s.floor && level(s, "chef")) {
@@ -113,7 +113,7 @@ export function buildResort(v, p) {
     for (let i = 0; i < 2; i++) floor(28, -19 - i * 5, 1.6, 2.5, 0xc3a2a0);
   if (s.floor === 1 && s.lounge) {
     floor(13.5, 4.7, 5, 2.8, 0xd3c6b5);
-    floor(24, -1, 19, 14, 0xdcccb8);
+    floor(24, -1, 19, 14, 0xdcccb8, 0.005);
     v.box(19, 1.3, 0.22, 0x97aeb2, 24, 0.85, -8.1, p);
     v.sign("THE SKY PARLOUR", 7, 0.65, 20, 2.05, -8, p);
     if (level(s, "roomService")) {

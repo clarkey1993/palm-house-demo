@@ -12,11 +12,11 @@ import {
   updateResort,
   resortObstacles,
   recordResortVisit,
-} from "./resort.js?v=5c2d59b334f77ae1";
-import { ROOMS, PADS, FACILITIES } from "./layout.js?v=5c2d59b334f77ae1";
-export { ROOMS, PADS, FACILITIES } from "./layout.js?v=5c2d59b334f77ae1";
-import { ECONOMY } from "./economy.js?v=5c2d59b334f77ae1";
-import { demoPadAllowed } from "./opening.js?v=5c2d59b334f77ae1";
+} from "./resort.js?v=6934bbf7d168eb53";
+import { ROOMS, PADS, FACILITIES } from "./layout.js?v=6934bbf7d168eb53";
+export { ROOMS, PADS, FACILITIES } from "./layout.js?v=6934bbf7d168eb53";
+import { ECONOMY } from "./economy.js?v=6934bbf7d168eb53";
+import { demoPadAllowed } from "./opening.js?v=6934bbf7d168eb53";
 // Pure game simulation: rendering, input and persistence live outside this module.
 export const CLEAN_SPOTS = ROOMS.map((r) => ({
   x: r.x - Math.sign(r.x) * 2.65,
@@ -1226,7 +1226,7 @@ export function update(g, dt, input = { x: 0, z: 0 }) {
           );
           v.gymSlot = Array.from(
             { length: s.gymUpgrade ? 6 : 3 },
-            (_, i) => i,
+            (_, i) => (i + s.visits.gym) % (s.gymUpgrade ? 6 : 3),
           ).find((i) => !occupied.has(i));
           v.route = [
             { x: 2.9, z: 4.7 },

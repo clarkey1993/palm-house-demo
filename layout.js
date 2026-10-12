@@ -1,4 +1,4 @@
-import { RESORT_PADS } from "./resort.js?v=5c2d59b334f77ae1";
+import { RESORT_PADS } from "./resort.js?v=6934bbf7d168eb53";
 // Shared world layout: simulation and rendering use the same coordinates.
 export const ROOMS = [
   { x: -7.8, z: -8.5, name: "Palm suite" },

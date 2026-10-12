@@ -1,16 +1,16 @@
-import { buildResort, renderResort } from "./resort-view.js?v=5c2d59b334f77ae1";
-import { level, gymBonus } from "./resort.js?v=5c2d59b334f77ae1";
-import { performanceProfile, readSmoothPreference } from "./performance.js?v=5c2d59b334f77ae1";
-import { coverFloor, placeArchitecture } from "./architecture.js?v=5c2d59b334f77ae1";
-import { furniture } from "./furniture.js?v=5c2d59b334f77ae1";
+import { buildResort, renderResort } from "./resort-view.js?v=6934bbf7d168eb53";
+import { level, gymBonus } from "./resort.js?v=6934bbf7d168eb53";
+import { performanceProfile, readSmoothPreference } from "./performance.js?v=6934bbf7d168eb53";
+import { coverFloor, placeArchitecture } from "./architecture.js?v=6934bbf7d168eb53";
+import { furniture } from "./furniture.js?v=6934bbf7d168eb53";
 import {
   stepMotion,
   motionPose,
   serviceRoute,
   stepServiceRoute,
-} from "./animation.js?v=5c2d59b334f77ae1";
-import { DECOR } from "./decor.js?v=5c2d59b334f77ae1";
-import * as T from "./vendor/three.module.js?v=5c2d59b334f77ae1";
+} from "./animation.js?v=6934bbf7d168eb53";
+import { DECOR } from "./decor.js?v=6934bbf7d168eb53";
+import * as T from "./vendor/three.module.js?v=6934bbf7d168eb53";
 import {
   ROOMS,
   cafeOffset,
@@ -32,7 +32,7 @@ import {
   complete,
   label,
   distance,
-} from "./model.js?v=5c2d59b334f77ae1";
+} from "./model.js?v=6934bbf7d168eb53";
 const colors = {
   sand: 0xf4ddae,
   cream: 0xfff5da,
@@ -1191,6 +1191,10 @@ export class HotelView {
           meal.add(food);
           this.sphere(0.1, 0xd99858, 0.05, 0.08, 0, food);
           this.sphere(0.065, 0x83a568, -0.1, 0.06, 0.03, food);
+          if (level(s, "desserts")) {
+            this.cyl(0.12, 0.12, 0.13, 0xe8b28b, 0.32, 0.075, 0, food);
+            this.cyl(0.125, 0.125, 0.025, 0xffedd4, 0.32, 0.155, 0, food);
+          }
           meal.userData.food = food;
           meal.visible = false;
           this.tableMeals.push(meal);
@@ -2358,6 +2362,7 @@ export class HotelView {
       }
       this.relaxationPose(a, guest, dt);
       if (guest.worker) {
+        if (guest.working) this.receptionPose(a, true, false);
         a.userData.servingTray.visible = ![
           "garage",
           "luggage",
@@ -2373,9 +2378,36 @@ export class HotelView {
         a.userData.luggage.visible = false;
         a.userData.cup.visible = guest.phase === "roofDinner";
       }
+      if (guest.phase === "roofGarden") {
+        a.userData.luggage.visible = false;
+        if (!guest.moving) a.rotation.set(0, -Math.PI / 2, 0);
+      }
+      if (a.userData.readingBook) a.userData.readingBook.visible = false;
       if (guest.phase === "resortEnjoy") {
+        if (["garden", "skyCafe"].includes(guest.project)) {
+          a.rotation.set(0, Math.PI, 0);
+          a.position.y = 0.1;
+          a.userData.legs.forEach((l) => (l.rotation.x = -Math.PI / 2));
+          a.userData.knees.forEach((k) => (k.rotation.x = Math.PI / 2));
+          a.userData.arms.forEach((arm) => (arm.rotation.x = -0.65));
+        }
         a.userData.cup.visible = ["garden", "skyCafe"].includes(guest.project);
         a.userData.luggage.visible = guest.project === "luggage";
+        if (guest.reading) {
+          a.userData.readingBook ??= this.box(
+            0.52,
+            0.045,
+            0.36,
+            0x678f82,
+            0,
+            1.04,
+            0.45,
+            a,
+          );
+          a.userData.readingBook.visible = true;
+          a.userData.cup.visible = false;
+          a.userData.elbows.forEach((e) => (e.rotation.x = -0.7));
+        }
       }
 
       if (coffee && a.userData.cup.visible && !guest.moving) {

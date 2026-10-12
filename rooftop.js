@@ -3,7 +3,8 @@ import {
   level,
   roofBonus,
   recordResortVisit,
-} from "./resort.js?v=5c2d59b334f77ae1";
+  resortRoute,
+} from "./resort.js?v=6934bbf7d168eb53";
 import {
   createGame,
   PADS,
@@ -14,7 +15,7 @@ import {
   onDuty,
   unlocked,
   moveRate,
-} from "./model.js?v=5c2d59b334f77ae1";
+} from "./model.js?v=6934bbf7d168eb53";
 export const ROOF_LIFT = { x: 3.2, z: 12.8 };
 export const ROOF_CASH = { x: 1.7, z: 5.5 };
 export const roofValue = (s) =>
@@ -40,25 +41,57 @@ export function createRooftop(saved) {
   }));
   return g;
 }
-export function roofWalkRoute(from, target) {
-  const crossesFurniture = Array.from({ length: 81 }, (_, i) => i / 80).some(
-    (t) =>
-      roofBlocked(
-        from.x + (target.x - from.x) * t,
-        from.z + (target.z - from.z) * t,
-      ),
+export function roofWalkRoute(from, target, state) {
+  return (
+    resortRoute({ state }, from, target, (_, x, z) =>
+      roofBlocked(x, z, state),
+    ) || []
   );
-  return crossesFurniture
-    ? [{ x: 4.6, z: from.z }, { x: 4.6, z: target.z }, { ...target }]
-    : [{ ...target }];
 }
-function walk(v, destination, dt, speed = 3) {
-  const key = destination.x + "," + destination.z;
+function walkRoof(v, destination, dt, speed = 3, state) {
+  // A project can finish while someone is crossing its future footprint.
+  if (roofBlocked(v.x, v.z, state)) {
+    let free;
+    for (let radius = 0.35; radius <= 3 && !free; radius += 0.35)
+      for (let n = 0; n < 16; n++) {
+        const at = {
+          x: v.x + Math.cos((n * Math.PI) / 8) * radius,
+          z: v.z + Math.sin((n * Math.PI) / 8) * radius,
+        };
+        if (!roofBlocked(at.x, at.z, state)) {
+          free = at;
+          break;
+        }
+      }
+    if (free) {
+      Object.assign(v, free);
+      v.walkRoute = [];
+    }
+  }
+  if (Math.hypot(v.x - destination.x, v.z - destination.z) < 0.08) {
+    v.x = destination.x;
+    v.z = destination.z;
+    v.moving = false;
+    v.walkRoute = [];
+    return true;
+  }
+  const key =
+    destination.x +
+    "," +
+    destination.z +
+    ":" +
+    level(state, "cabanas") +
+    ":" +
+    level(state, "sunset");
   if (v.walkTarget !== key || !v.walkRoute?.length) {
     v.walkTarget = key;
-    v.walkRoute = roofWalkRoute(v, destination);
+    v.walkRoute = roofWalkRoute(v, destination, state);
   }
   const target = v.walkRoute[0];
+  if (!target) {
+    v.moving = false;
+    return false;
+  }
   const dx = target.x - v.x,
     dz = target.z - v.z,
     d = Math.hypot(dx, dz);
@@ -75,7 +108,17 @@ function walk(v, destination, dt, speed = 3) {
   v.angle = Math.atan2(dx, dz);
   return false;
 }
-export function roofBlocked(x, z) {
+export function roofBlocked(x, z, state) {
+  if (
+    level(state, "cabanas") &&
+    [-8, -5.3].some((cx) => Math.abs(x - cx) < 1.12 && z > 1.7 && z < 4.15)
+  )
+    return true;
+  if (
+    level(state, "sunset") &&
+    [5.5, 8.4].some((cx) => Math.abs(x - cx) < 0.7 && Math.abs(z - 5.2) < 0.7)
+  )
+    return true;
   return (
     x < -10.5 ||
     x > 10.5 ||
@@ -97,10 +140,11 @@ export function updateRooftop(g, dt, input = { x: 0, z: 0 }) {
   if (p.moving) {
     const dx = (input.x / Math.max(1, length)) * speed * dt,
       dz = (input.z / Math.max(1, length)) * speed * dt;
-    if (!roofBlocked(p.x + dx, p.z)) p.x += dx;
-    if (!roofBlocked(p.x, p.z + dz)) p.z += dz;
+    if (!roofBlocked(p.x + dx, p.z, s)) p.x += dx;
+    if (!roofBlocked(p.x, p.z + dz, s)) p.z += dz;
     p.angle = Math.atan2(dx, dz);
   }
+  const walk = (v, at, dt, speed = 3) => walkRoof(v, at, dt, speed, s);
   payroll(g, dt);
   for (const v of g.guests) {
     if (v.phase === "roofArrive") {
@@ -144,11 +188,13 @@ export function updateRooftop(g, dt, input = { x: 0, z: 0 }) {
         v.phase = v.phase === "roofDrink" && s.roofSpa ? "roofSpa" : "roofPay";
         v.timer = 6;
       }
-    } else if (["roofCabana", "roofDinner"].includes(v.phase)) {
+    } else if (["roofCabana", "roofDinner", "roofGarden"].includes(v.phase)) {
       const at =
         v.phase === "roofCabana"
-          ? { x: -8 + v.resortSlot * 2.7, z: 4.2 }
-          : { x: 5.5 + v.resortSlot * 2.9, z: 6.5 };
+          ? { x: -8 + v.resortSlot * 2.7, z: 4.5 }
+          : v.phase === "roofDinner"
+            ? { x: 5.5 + v.resortSlot * 2.9, z: 6.5 }
+            : { x: -9.3, z: 10.6 + v.resortSlot * 1.25 };
       if (walk(v, at, dt)) {
         v.moving = false;
         v.timer -= dt;
@@ -181,6 +227,20 @@ export function updateRooftop(g, dt, input = { x: 0, z: 0 }) {
         v.usedDinner = true;
         v.phase = "roofDinner";
         v.timer = 7;
+        continue;
+      }
+      if (level(s, "roofGarden") && !v.usedGarden) {
+        const slot = [0, 1].find(
+          (i) =>
+            !g.guests.some(
+              (a) => a !== v && a.phase === "roofGarden" && a.resortSlot === i,
+            ),
+        );
+        if (slot === undefined) continue;
+        v.resortSlot = slot;
+        v.usedGarden = true;
+        v.phase = "roofGarden";
+        v.timer = 3;
         continue;
       }
       for (const key of ["cabanas", "sunset", "roofGarden"])

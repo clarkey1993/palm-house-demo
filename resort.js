@@ -28,7 +28,11 @@ export const PROJECTS = [
     benefit:
       "Afternoon tea earns $40 per visit. Upgrade adds a fountain and $20.",
     service: { x: 0, z: 22 },
-    visit: { x: -6, z: 25 },
+    visit: { x: -6, z: 25.8 },
+    seats: [
+      { x: -6, z: 25.8 },
+      { x: 6, z: 25.8 },
+    ],
     fee: 40,
   },
   {
@@ -58,8 +62,8 @@ export const PROJECTS = [
     key: "desserts",
     floor: 0,
     name: "Dessert counter",
-    x: 30.5,
-    z: 1,
+    x: 31,
+    z: 3.1,
     cost: [1400, 2400],
     requires: "restaurant",
     benefit: "Servers include dessert: +$20 per meal per level.",
@@ -80,13 +84,13 @@ export const PROJECTS = [
     key: "luggage",
     floor: 0,
     name: "Luggage storage",
-    x: -7,
-    z: 17,
+    x: -7.5,
+    z: 16.2,
     cost: [1000, 1800],
     requires: "expanded",
     benefit: "Store visitors’ bags for $30. Upgrade earns $15 extra.",
     service: { x: -6, z: 19 },
-    visit: { x: -6, z: 20 },
+    visit: { x: -6, z: 18.8 },
     fee: 30,
   },
   {
@@ -94,13 +98,13 @@ export const PROJECTS = [
     key: "excursions",
     floor: 0,
     name: "Seaside concierge",
-    x: 6.7,
-    z: 3.9,
+    x: 7.8,
+    z: 15,
     cost: [1700, 2900],
     requires: "expanded",
     benefit: "Book seaside outings for $55 commission; upgrade adds $25.",
-    service: { x: 7, z: 6 },
-    visit: { x: 5, z: 6 },
+    service: { x: 7, z: 17.8 },
+    visit: { x: 5, z: 17.8 },
     fee: 55,
   },
   {
@@ -128,7 +132,11 @@ export const PROJECTS = [
     requires: "lounge",
     benefit: "Coffee and reading visits earn $50; upgrade adds $20.",
     service: { x: 24, z: 4.5 },
-    visit: { x: 28, z: -2 },
+    visit: { x: 26.5, z: -2 },
+    seats: [
+      { x: 26.5, z: -2 },
+      { x: 29.5, z: -2 },
+    ],
     fee: 50,
   },
   {
@@ -136,7 +144,7 @@ export const PROJECTS = [
     key: "cabanas",
     floor: 2,
     name: "Private cabanas",
-    x: -9,
+    x: -9.5,
     z: 8,
     cost: [2200, 3600],
     benefit: "Shaded poolside stays add $35 per rooftop guest per level.",
@@ -146,8 +154,8 @@ export const PROJECTS = [
     key: "sunset",
     floor: 2,
     name: "Sunset dining",
-    x: 9,
-    z: 7.5,
+    x: 8,
+    z: 9.3,
     cost: [2400, 3800],
     benefit: "A sunset meal adds $45 per rooftop guest per level.",
   },
@@ -169,7 +177,7 @@ export const RESORT_STAFF = [
     project: "garage",
     floor: 0,
     name: "Hire valet",
-    x: 19,
+    x: 19.5,
     z: 10,
     wage: 45,
     cost: [900, 1600],
@@ -202,8 +210,8 @@ export const RESORT_STAFF = [
     project: "excursions",
     floor: 0,
     name: "Hire tour concierge",
-    x: 10,
-    z: 10.4,
+    x: 10.2,
+    z: 17.6,
     wage: 45,
     cost: [1000, 1700],
   },
@@ -263,7 +271,7 @@ export const resortPrice = (s, p) =>
   p.cost[Math.min(p.cost.length - 1, level(s, p.key))];
 export const resortBenefit = (s, p) =>
   p.project
-    ? `New hire: $${p.wage + level(s, p.key) * 15}/min · serves ${PROJECTS.find((a) => a.key === p.project).name.toLowerCase()}`
+    ? `New hire: $${p.wage + level(s, p.key) * 15}/min · ${level(s, p.key) ? "+35% automatic service and delivery speed" : "automates " + PROJECTS.find((a) => a.key === p.project).name.toLowerCase()}`
     : p.benefit;
 export const resortWages = (s) =>
   RESORT_STAFF.reduce((sum, p) => {
@@ -304,12 +312,31 @@ export function resortRoute(g, start, end, blocked) {
     sz = Math.round(start.z / step),
     tx = Math.round(end.x / step),
     tz = Math.round(end.z / step);
-  const q = [[sx, sz]],
-    seen = new Map([[key(sx, sz), null]]);
+  const clear = (a, b) => {
+    const n = Math.max(1, Math.ceil(Math.hypot(a.x - b.x, a.z - b.z) / 0.15));
+    for (let i = 0; i <= n; i++)
+      if (blocked(g, a.x + ((b.x - a.x) * i) / n, a.z + ((b.z - a.z) * i) / n))
+        return false;
+    return true;
+  };
+  const anchors = (x, z, at) =>
+    [-1, 0, 1]
+      .flatMap((dx) => [-1, 0, 1].map((dz) => [x + dx, z + dz]))
+      .filter(([x, z]) => clear(at, { x: x * step, z: z * step }))
+      .sort(
+        (a, b) =>
+          Math.hypot(a[0] * step - at.x, a[1] * step - at.z) -
+          Math.hypot(b[0] * step - at.x, b[1] * step - at.z),
+      );
+  const first = anchors(sx, sz, start)[0],
+    goals = new Set(anchors(tx, tz, end).map((a) => key(...a)));
+  if (!first || !goals.size) return null;
+  const q = [first],
+    seen = new Map([[key(...first), null]]);
   let found;
   for (let n = 0; n < q.length && n < 14000; n++) {
     const [x, z] = q[n];
-    if (x === tx && z === tz) {
+    if (goals.has(key(x, z))) {
       found = [x, z];
       break;
     }
@@ -348,6 +375,10 @@ export function resortRoute(g, start, end, blocked) {
   );
 }
 export function walkResort(a, dt, speed = 3) {
+  if (a.route === null) {
+    a.moving = false;
+    return false;
+  }
   const t = a.route?.[0];
   a.moving = !!t;
   if (!t) return true;
@@ -386,6 +417,51 @@ export function updateResort(g, dt, api) {
   g.resortActors ??= [];
   g.resortNext ??= {};
   g.resortClock = (g.resortClock || 0) + dt;
+  const layout = [
+    s.expanded,
+    s.wing,
+    s.gym,
+    s.gymUpgrade,
+    s.restaurant,
+    s.lounge,
+    ...s.levels,
+    ...Object.values(r.levels),
+  ].join(":");
+  if (g.resortLayout !== layout) {
+    g.resortLayout = layout;
+    for (const a of g.resortActors) {
+      // Construction may put a fountain underneath a passing visitor.
+      if (api.blocked(g, a.x, a.z)) {
+        let free;
+        for (let radius = 0.35; radius <= 3 && !free; radius += 0.35)
+          for (let n = 0; n < 16; n++) {
+            const at = {
+              x: a.x + Math.cos((n * Math.PI) / 8) * radius,
+              z: a.z + Math.sin((n * Math.PI) / 8) * radius,
+            };
+            if (!api.blocked(g, at.x, at.z)) {
+              free = at;
+              break;
+            }
+          }
+        if (free) Object.assign(a, free);
+      }
+      if (a.worker) {
+        a.destination = null;
+        a.route = [];
+      } else if (["resortWalk", "resortLeave"].includes(a.phase))
+        a.route = resortRoute(
+          g,
+          a,
+          a.phase === "resortWalk"
+            ? a.target
+            : s.floor
+              ? { x: 3.2, z: 12.8 }
+              : { x: 2.9, z: 12 },
+          api.blocked,
+        );
+    }
+  }
   const available = PROJECTS.filter(
     (p) => p.floor === s.floor && p.service && level(s, p.key),
   );
@@ -405,7 +481,11 @@ export function updateResort(g, dt, api) {
               .sort((a, b) => (b.timer || 0) - (a.timer || 0))[0]
           : null;
       if (p.key === "roomService" && !room) continue;
-      const target = room ? api.cleanSpots[room.room] : p.visit;
+      const target = room
+        ? api.cleanSpots[room.room]
+        : p.seats
+          ? p.seats[r.visits[p.key] % p.seats.length]
+          : p.visit;
       const origin = s.floor ? { x: 3.2, z: 12.8 } : { x: 2.9, z: 12 };
       const route = resortRoute(g, origin, target, api.blocked);
       if (!route) continue;
@@ -424,6 +504,7 @@ export function updateResort(g, dt, api) {
         target,
         room: room?.room,
         guestId: room?.id,
+        reading: p.key === "skyCafe" && r.visits[p.key] % 2 === 1,
       };
       g.resortActors.push(actor);
     }
@@ -448,13 +529,30 @@ export function updateResort(g, dt, api) {
       g.resortActors.push(worker);
     }
     const worker = workers[0];
-    if (!actor) continue;
+    const returnToStation = () => {
+      for (const w of workers) {
+        w.moving = false;
+        w.working = false;
+      }
+      if (!worker || s.wagesDue > 0) return;
+      const destination = `home:${p.key}`;
+      if (worker.destination !== destination) {
+        worker.destination = destination;
+        worker.route = resortRoute(g, worker, p.service, api.blocked) || [];
+      }
+      walkResort(worker, dt, 3.5);
+    };
+    if (!actor) {
+      returnToStation();
+      continue;
+    }
     if (
       actor.room !== undefined &&
       !g.guests.some((v) => v.id === actor.guestId && v.phase === "stay") &&
       actor.phase === "resortWait"
     ) {
       g.resortActors = g.resortActors.filter((a) => a !== actor);
+      returnToStation();
       continue;
     }
     if (actor.phase === "resortWalk" && walkResort(actor, dt))
@@ -475,6 +573,7 @@ export function updateResort(g, dt, api) {
         walkResort(worker, dt, 3.5 * (1 + (n - 1) * 0.35));
         auto = Math.hypot(worker.x - at.x, worker.z - at.z) < 1.3;
       }
+      if (worker) worker.working = auto;
       if (manual || auto)
         actor.service += dt * (manual ? 1 : 1 + (n - 1) * 0.35);
       if (actor.service >= 3) {
@@ -518,15 +617,8 @@ export function updateResort(g, dt, api) {
     }
     if (workers[1])
       workers[1].working = actor.phase === "resortWait" && s.wagesDue === 0;
-    if (worker && actor.phase !== "resortWait") {
-      worker.destination = null;
-      if (
-        !worker.route.length &&
-        Math.hypot(worker.x - p.service.x, worker.z - p.service.z) > 1
-      )
-        worker.route = resortRoute(g, worker, p.service, api.blocked) || [];
-      walkResort(worker, dt, 3.5);
-    }
+    if (actor.phase !== "resortWait") returnToStation();
+    else if (worker && s.wagesDue > 0) worker.moving = false;
   }
   if (g.resortClock > 20) g.resortClock = 0;
 }
@@ -537,10 +629,10 @@ export function resortObstacles(s) {
       out.push({ x: 18.1 + i * 5, z: 14.5, w: 1.8, d: 3 });
   if (!s.floor && level(s, "garden")) {
     out.push({ x: -1.4, z: 23.5, w: 2.8, d: 1 });
-    if (level(s, "garden") > 1) out.push({ x: 4.9, z: 18.9, w: 2.2, d: 2.2 });
+    if (level(s, "garden") > 1) out.push({ x: 6.9, z: 20.4, w: 2.2, d: 2.2 });
   }
   if (!s.floor && level(s, "excursions"))
-    out.push({ x: 5.85, z: 2.85, w: 2.3, d: 0.7 });
+    out.push({ x: 5.85, z: 18.95, w: 2.3, d: 0.7 });
   if (!s.floor && level(s, "desserts"))
     out.push({ x: 27.8, z: 0.8, w: 2.4, d: 1.05 });
   if (!s.floor && level(s, "chef"))
