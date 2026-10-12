@@ -1,4 +1,4 @@
-import { parseSave, SaveConflictError } from "./saves.js?v=8b66355174a228a7";
+import { parseSave, SaveConflictError } from "./saves.js?v=636bcf9fedd7e96d";
 
 export class NativeSaveStore {
   constructor(files, legacy) {
@@ -58,6 +58,6 @@ export class NativeSaveStore {
   }
 }
 export async function createNativeSaveStore(legacy) {
-  const { registerPlugin } = await import("./vendor/capacitor.js?v=8b66355174a228a7");
+  const { registerPlugin } = await import("./vendor/capacitor.js?v=636bcf9fedd7e96d");
   return new NativeSaveStore(registerPlugin("HotelFiles"), legacy);
 }

@@ -1,25 +1,25 @@
-import { PROJECTS, RESORT_STAFF, level } from "./resort.js?v=8b66355174a228a7";
-import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=8b66355174a228a7";
+import { PROJECTS, RESORT_STAFF, level } from "./resort.js?v=636bcf9fedd7e96d";
+import { CAMPAIGN, nextEvent, startEvent, applyCampaign } from "./campaign.js?v=636bcf9fedd7e96d";
 import {
   FrameClock,
   performanceProfile,
   readSmoothPreference,
-} from "./performance.js?v=8b66355174a228a7";
-import { mountFeedback } from "./feedback.js?v=8b66355174a228a7";
-import { preloadFurniture } from "./furniture.js?v=8b66355174a228a7";
+} from "./performance.js?v=636bcf9fedd7e96d";
+import { mountFeedback } from "./feedback.js?v=636bcf9fedd7e96d";
+import { preloadFurniture } from "./furniture.js?v=636bcf9fedd7e96d";
 import {
   RESTORATION,
   nextRestoration,
   restorationReady,
   finishRestoration,
-} from "./restoration.js?v=8b66355174a228a7";
-import { createSeaAmbience } from "./ambience.js?v=8b66355174a228a7";
-import { createSoundEffects } from "./sound-effects.js?v=8b66355174a228a7";
-import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=8b66355174a228a7";
-import { openingTask } from "./onboarding.js?v=8b66355174a228a7";
-import { BUILD } from "./build-config.js?v=8b66355174a228a7";
-import { BrowserSaveStore } from "./save-store.js?v=8b66355174a228a7";
-import { PlaytestLog } from "./playtest.js?v=8b66355174a228a7";
+} from "./restoration.js?v=636bcf9fedd7e96d";
+import { createSeaAmbience } from "./ambience.js?v=636bcf9fedd7e96d";
+import { createSoundEffects } from "./sound-effects.js?v=636bcf9fedd7e96d";
+import { DECOR, decorAvailable, decorProgress, selectDecor } from "./decor.js?v=636bcf9fedd7e96d";
+import { openingTask } from "./onboarding.js?v=636bcf9fedd7e96d";
+import { BUILD } from "./build-config.js?v=636bcf9fedd7e96d";
+import { BrowserSaveStore } from "./save-store.js?v=636bcf9fedd7e96d";
+import { PlaytestLog } from "./playtest.js?v=636bcf9fedd7e96d";
 import {
   OPENING_STEPS,
   openingComplete,
@@ -27,7 +27,7 @@ import {
   nextOpeningStep,
   applyOpeningPolicy,
   fitsOpening,
-} from "./opening.js?v=8b66355174a228a7";
+} from "./opening.js?v=636bcf9fedd7e96d";
 import {
   createGame,
   update,
@@ -52,7 +52,7 @@ import {
   RESTAURANT_SERVICE,
   roomRate,
   distance,
-} from "./model.js?v=8b66355174a228a7";
+} from "./model.js?v=636bcf9fedd7e96d";
 import {
   createHotel,
   serializeHotel,
@@ -65,12 +65,12 @@ import {
   floorMetrics,
   LIFT,
   travel,
-} from "./hotel.js?v=8b66355174a228a7";
-import { HotelView } from "./view.js?v=8b66355174a228a7";
-import { RooftopView } from "./rooftop-view.js?v=8b66355174a228a7";
-import { roofValue } from "./rooftop.js?v=8b66355174a228a7";
-import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=8b66355174a228a7";
-import { parseSave, SaveConflictError } from "./saves.js?v=8b66355174a228a7";
+} from "./hotel.js?v=636bcf9fedd7e96d";
+import { HotelView } from "./view.js?v=636bcf9fedd7e96d";
+import { RooftopView } from "./rooftop-view.js?v=636bcf9fedd7e96d";
+import { roofValue } from "./rooftop.js?v=636bcf9fedd7e96d";
+import { CHAPTERS, nextChapter, claimChapter } from "./journey.js?v=636bcf9fedd7e96d";
+import { parseSave, SaveConflictError } from "./saves.js?v=636bcf9fedd7e96d";
 const $ = (s) => document.querySelector(s),
   canvas = $("#game");
 const storage = {
@@ -101,7 +101,7 @@ let saved,
 try {
   if (document.body.dataset.hotelPreview !== "true") {
     if (nativeStorage) {
-      const { createNativeSaveStore } = await import("./native-save-store.js?v=8b66355174a228a7");
+      const { createNativeSaveStore } = await import("./native-save-store.js?v=636bcf9fedd7e96d");
       saveStore = await createNativeSaveStore(saveStore);
     }
     const loaded = await saveStore.load();
@@ -1187,7 +1187,7 @@ $("#export-save").onclick = async () => {
   button.disabled = true;
   try {
     if (window.Capacitor?.getPlatform() === "ios") {
-      const { shareNativeBackup } = await import("./native-backup.js?v=8b66355174a228a7");
+      const { shareNativeBackup } = await import("./native-backup.js?v=636bcf9fedd7e96d");
       const result = await shareNativeBackup(serializeHotel(hotel));
       $("#backup-feedback").textContent = result.completed
         ? "Backup exported. Keep it somewhere safe."

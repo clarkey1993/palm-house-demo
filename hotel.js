@@ -3,11 +3,11 @@ import {
   serviceTotals,
   advanceCampaign,
   applyCampaign,
-} from "./campaign.js?v=8b66355174a228a7";
-import { RESTORATION } from "./restoration.js?v=8b66355174a228a7";
-import { selectDecor } from "./decor.js?v=8b66355174a228a7";
-import { ECONOMY } from "./economy.js?v=8b66355174a228a7";
-import { createRooftop, updateRooftop } from "./rooftop.js?v=8b66355174a228a7";
+} from "./campaign.js?v=636bcf9fedd7e96d";
+import { RESTORATION } from "./restoration.js?v=636bcf9fedd7e96d";
+import { selectDecor } from "./decor.js?v=636bcf9fedd7e96d";
+import { ECONOMY } from "./economy.js?v=636bcf9fedd7e96d";
+import { createRooftop, updateRooftop } from "./rooftop.js?v=636bcf9fedd7e96d";
 import {
   createGame,
   update,
@@ -18,7 +18,7 @@ import {
   RECEPTION,
   roomRoute,
   distance,
-} from "./model.js?v=8b66355174a228a7";
+} from "./model.js?v=636bcf9fedd7e96d";
 
 // Demand follows built rooms accepting bookings across both floors.
 export function arrivalInterval(h, busy = false) {

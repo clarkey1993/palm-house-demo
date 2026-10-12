@@ -1,5 +1,5 @@
-import * as T from "./vendor/three.module.js?v=8b66355174a228a7";
-import { PROJECTS, level } from "./resort.js?v=8b66355174a228a7";
+import * as T from "./vendor/three.module.js?v=636bcf9fedd7e96d";
+import { PROJECTS, level } from "./resort.js?v=636bcf9fedd7e96d";
 export function buildResort(v, p) {
   const s = v.game.state;
   const surface = s.floor === 2 ? 0.34 : 0.14;
@@ -110,7 +110,10 @@ export function buildResort(v, p) {
     asset("exercise-bike", 24, -19, 1);
   }
   if (!s.floor && level(s, "yoga"))
-    for (let i = 0; i < 2; i++) floor(28, -19 - i * 5, 1.6, 2.5, 0xc3a2a0);
+    // Gym backing mats top out at y=0.22. Keep the yoga mat fully above
+    // that surface so the two colours cannot compete in the depth buffer.
+    for (let i = 0; i < 2; i++)
+      v.round(1.6, 0.04, 2.5, 0xc3a2a0, 28, 0.255, -19 - i * 5, p, 0.15);
   if (s.floor === 1 && s.lounge) {
     floor(13.5, 4.7, 5, 2.8, 0xd3c6b5);
     floor(24, -1, 19, 14, 0xdcccb8, 0.005);
